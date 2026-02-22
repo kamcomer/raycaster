@@ -1,7 +1,9 @@
 *.out
 build/
-Packages/
+packages/*
 .cache
 .VSCodeCounter
 .vscode
 config.ini
+
+!packages/.gitkeep
