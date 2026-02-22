@@ -43,23 +43,21 @@ typedef struct
 } Scene;
 
 Scene *create_scene(WindowCtx *window_ctx, char *map_path);
-void set_current_scene(Scene *scene);
-Scene *get_current_scene(void);
 void free_scene(Scene *scene);
 
-void render_scene(void (*render)(void));
-void render_2d_scene(void);
-void render_fp_scene(void);
-void renderer_sprites(void);
+void render_scene(Scene *scene, void (*render)(Scene*));
+void render_2d_scene(Scene *scene);
+void render_fp_scene(Scene *scene);
+void renderer_sprites(Scene *scene);
 void render_2d_map(Scene scene);
-void render_2d_player(void);
-void render_player_plane(Player player);
-void render_player_view_rays(Player player);
-void render_actor_body(Actor actor);
-void render_actor_vel_dir(Actor actor);
-void render_actor_view_dir(Actor actor);
-void render_actor_view_rays(Actor actor);
-void render_walls(void);
-void render_floor_and_ceil(void);
+void render_2d_player(Scene *scene);
+void render_player_plane(Scene *scene);
+void render_player_view_rays(Scene *scene);
+void render_actor_body(Scene *scene);
+void render_actor_vel_dir(Scene *scene);
+void render_actor_view_dir(Scene *scene);
+void render_actor_view_rays(Scene *scene);
+void render_walls(Scene *scene);
+void render_floor_and_ceil(Scene *scene);
 
 #endif

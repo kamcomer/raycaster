@@ -42,8 +42,6 @@ int main(int argc, char *argv[])
   Config *config = init_config();
   WindowCtx *window_ctx = create_window_ctx(config->window_config);
   Scene *scene = create_scene(window_ctx, "assets/maps/map.txt");
-  set_current_scene(scene);
-  window_ctx->render_function = render_fp_scene;
 
   GameTiming timing;
   timing_init(&timing);
@@ -64,7 +62,7 @@ int main(int argc, char *argv[])
 
     timing_cap_fps(target_fps);
 
-    window_ctx->render_function();
+    render_fp_scene(scene);
     render_present(window_ctx->renderer);
   }
 

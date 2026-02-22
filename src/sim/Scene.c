@@ -10,18 +10,6 @@
 #include <string.h>
 #include <math.h>
 
-static Scene *current_scene = NULL;
-
-void set_current_scene(Scene *scene)
-{
-  current_scene = scene;
-}
-
-Scene *get_current_scene()
-{
-  return current_scene;
-}
-
 Scene *create_scene(WindowCtx *window_ctx, char *map_path)
 {
   Scene *scene = malloc(sizeof(Scene));
@@ -87,17 +75,17 @@ Scene *create_scene(WindowCtx *window_ctx, char *map_path)
   return scene;
 }
 
-void render_scene(void (*render)())
+void render_scene(Scene *scene, void (*render)(Scene*))
 {
-  set_render_draw_color(current_scene->window_ctx->renderer, 0, 0, 0, 255);
-  clear_renderer(current_scene->window_ctx->renderer);
-  render(*current_scene);
+  set_render_draw_color(scene->window_ctx->renderer, 0, 0, 0, 255);
+  clear_renderer(scene->window_ctx->renderer);
+  render(scene);
 }
 
-void render_2d_scene(void)
+void render_2d_scene(Scene *scene)
 {
-  render_2d_map(*current_scene);
-  render_2d_player();
+  render_2d_map(*scene);
+  render_2d_player(scene);
 }
 
 void render_2d_map(Scene scene)
@@ -139,108 +127,114 @@ void render_2d_map(Scene scene)
   }
 }
 
-void render_2d_player()
+void render_2d_player(Scene *scene)
 {
-  render_actor_body(*current_scene->player.actor);
+  render_actor_body(scene);
 
 #ifdef DEBUG
-  render_player_view_rays(player);
-  render_actor_view_dir(player.actor);
-  render_actor_vel_dir(player.actor);
-  render_player_plane(player);
+  render_player_view_rays(scene);
+  render_actor_view_dir(scene);
+  render_actor_vel_dir(scene);
+  render_player_plane(scene);
 #endif
 }
 
-void render_player_plane(Player player)
+void render_player_plane(Scene *scene)
 {
-  set_render_draw_color(current_scene->window_ctx->renderer, 0, 0, 0, 255);
+  Player player = scene->player;
+  set_render_draw_color(scene->window_ctx->renderer, 0, 0, 0, 255);
   set_vector_magnitude(&player.actor->dir, 10);
   set_vector_magnitude(&player.plane, 5);
-  render_draw_line(current_scene->window_ctx->renderer,
+  render_draw_line(scene->window_ctx->renderer,
                    player.actor->pos.x + player.actor->dir.x - player.plane.x,
                    player.actor->pos.y + player.actor->dir.y - player.plane.y,
                    player.actor->pos.x + player.actor->dir.x + player.plane.x,
                    player.actor->pos.y + player.actor->dir.y + player.plane.y);
 }
 
-void render_actor_body(Actor actor)
+void render_actor_body(Scene *scene)
 {
-  set_render_draw_color(current_scene->window_ctx->renderer, 0, 255, 0, 255);
+  Actor actor = *scene->player.actor;
+  set_render_draw_color(scene->window_ctx->renderer, 0, 255, 0, 255);
   Rect rect = {actor.pos.x - (actor.size >> 1),
                actor.pos.y - (actor.size >> 1), actor.size, actor.size};
-  render_fill_rect(current_scene->window_ctx->renderer, &rect);
+  render_fill_rect(scene->window_ctx->renderer, &rect);
 }
 
-void render_actor_view_dir(Actor actor)
+void render_actor_view_dir(Scene *scene)
 {
-  set_render_draw_color(current_scene->window_ctx->renderer, 0, 0, 0, 255);
+  Actor actor = *scene->player.actor;
+  set_render_draw_color(scene->window_ctx->renderer, 0, 0, 0, 255);
   set_vector_magnitude(&actor.dir, 10);
   translate_vector(&actor.dir, actor.pos);
-  render_draw_line(current_scene->window_ctx->renderer,
+  render_draw_line(scene->window_ctx->renderer,
                    actor.pos.x, actor.pos.y, actor.dir.x, actor.dir.y);
 }
 
-void render_actor_vel_dir(Actor actor)
+void render_actor_vel_dir(Scene *scene)
 {
-  set_render_draw_color(current_scene->window_ctx->renderer, 255, 255, 255, 255);
+  Actor actor = *scene->player.actor;
+  set_render_draw_color(scene->window_ctx->renderer, 255, 255, 255, 255);
   set_vector_magnitude(&actor.velocity, 10);
   Vector vel_endpoint = set_vector(actor.pos.x + actor.velocity.x,
                                    actor.pos.y + actor.velocity.y);
-  render_draw_line(current_scene->window_ctx->renderer,
+  render_draw_line(scene->window_ctx->renderer,
                    actor.pos.x, actor.pos.y, vel_endpoint.x, vel_endpoint.y);
 }
 
-void render_actor_view_rays(Actor actor)
+void render_actor_view_rays(Scene *scene)
 {
-  set_render_draw_color(current_scene->window_ctx->renderer, 255, 0, 255, 75);
+  Actor actor = *scene->player.actor;
+  set_render_draw_color(scene->window_ctx->renderer, 255, 0, 255, 75);
   for (int i = 0; i < DEFAULT_NUM_RAYS; i++)
   {
     Vector ray = actor.view_cone[i];
-    render_draw_line(current_scene->window_ctx->renderer,
+    render_draw_line(scene->window_ctx->renderer,
                      actor.pos.x, actor.pos.y, ray.x, ray.y);
   }
 }
 
-void render_player_view_rays(Player player)
+void render_player_view_rays(Scene *scene)
 {
-  set_render_draw_color(current_scene->window_ctx->renderer, 255, 0, 255, 75);
-  for (int i = 0; i < current_scene->window_ctx->window_config->width; i++)
+  Player player = scene->player;
+  set_render_draw_color(scene->window_ctx->renderer, 255, 0, 255, 75);
+  for (int i = 0; i < scene->window_ctx->window_config->width; i++)
   {
     Vector ray = player.intersects[i].vect;
-    render_draw_line(current_scene->window_ctx->renderer,
+    render_draw_line(scene->window_ctx->renderer,
                      player.actor->pos.x, player.actor->pos.y,
                      ray.x * DEFAULT_MAP_UNIT_SIZE, ray.y * DEFAULT_MAP_UNIT_SIZE);
   }
 }
 
-void render_fp_scene(void)
+void render_fp_scene(Scene *scene)
 {
-  render_floor_and_ceil();
-  render_walls();
-  renderer_sprites();
-  render_hud(current_scene);
+  render_floor_and_ceil(scene);
+  render_walls(scene);
+  renderer_sprites(scene);
+  render_hud(scene);
 }
 
-void renderer_sprites()
+void renderer_sprites(Scene *scene)
 {
-  Vector player_pos = current_scene->player.actor->pos;
+  Vector player_pos = scene->player.actor->pos;
   player_pos.x /= DEFAULT_MAP_UNIT_SIZE;
   player_pos.y /= DEFAULT_MAP_UNIT_SIZE;
 
   Texture *texture = create_texture(
-      current_scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      current_scene->window_ctx->window_config->width,
-      current_scene->window_ctx->window_config->height);
+      scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+      scene->window_ctx->window_config->width,
+      scene->window_ctx->window_config->height);
   set_texture_blend_mode(texture, SDL_BLENDMODE_BLEND);
 
   void *pixels;
   int pitch;
   lock_texture(texture, NULL, &pixels, &pitch);
-  memset(pixels, 0xFFFFFF00, pitch * current_scene->window_ctx->window_config->height);
+  memset(pixels, 0xFFFFFF00, pitch * scene->window_ctx->window_config->height);
   uint32_t *pixel_data = (uint32_t *)pixels;
   uint32_t color;
 
-  SceneStaticSprites static_sprites = current_scene->static_sprites;
+  SceneStaticSprites static_sprites = scene->static_sprites;
 
   for (int sprite_index = 0; sprite_index < static_sprites.num_sprites; sprite_index++)
   {
@@ -260,47 +254,47 @@ void renderer_sprites()
         static_sprites.sprites[static_sprites.sprite_order[i]].pos.x - player_pos.x,
         static_sprites.sprites[static_sprites.sprite_order[i]].pos.y - player_pos.y);
 
-    double inv_det = 1.0 / (current_scene->player.plane.x * current_scene->player.actor->dir.y -
-                            current_scene->player.actor->dir.x * current_scene->player.plane.y);
+    double inv_det = 1.0 / (scene->player.plane.x * scene->player.actor->dir.y -
+                            scene->player.actor->dir.x * scene->player.plane.y);
     Vector transform =
-        set_vector(inv_det * (current_scene->player.actor->dir.y * rel_sprite_pos.x -
-                              current_scene->player.actor->dir.x * rel_sprite_pos.y),
-                   inv_det * (-current_scene->player.plane.y * rel_sprite_pos.x +
-                              current_scene->player.plane.x * rel_sprite_pos.y));
+        set_vector(inv_det * (scene->player.actor->dir.y * rel_sprite_pos.x -
+                              scene->player.actor->dir.x * rel_sprite_pos.y),
+                   inv_det * (-scene->player.plane.y * rel_sprite_pos.x +
+                              scene->player.plane.x * rel_sprite_pos.y));
     int sprite_screen_x =
-        (int)((current_scene->window_ctx->window_config->width / 2.0) * (1 + transform.x / transform.y));
-    int sprite_height = abs((int)(current_scene->window_ctx->window_config->height / transform.y));
+        (int)((scene->window_ctx->window_config->width / 2.0) * (1 + transform.x / transform.y));
+    int sprite_height = abs((int)(scene->window_ctx->window_config->height / transform.y));
 
-    int draw_start_y = -sprite_height / 2 + current_scene->window_ctx->window_config->height / 2;
+    int draw_start_y = -sprite_height / 2 + scene->window_ctx->window_config->height / 2;
     if (draw_start_y < 0)
       draw_start_y = 0;
 
-    int draw_end_y = sprite_height / 2 + current_scene->window_ctx->window_config->height / 2;
-    if (draw_end_y >= current_scene->window_ctx->window_config->height)
-      draw_end_y = current_scene->window_ctx->window_config->height - 1;
+    int draw_end_y = sprite_height / 2 + scene->window_ctx->window_config->height / 2;
+    if (draw_end_y >= scene->window_ctx->window_config->height)
+      draw_end_y = scene->window_ctx->window_config->height - 1;
 
-    int sprite_width = abs((int)(current_scene->window_ctx->window_config->height / transform.y));
+    int sprite_width = abs((int)(scene->window_ctx->window_config->height / transform.y));
     int draw_start_x = -sprite_width / 2 + sprite_screen_x;
     if (draw_start_x < 0)
       draw_start_x = 0;
 
     int draw_end_x = sprite_width / 2 + sprite_screen_x;
-    if (draw_end_x >= current_scene->window_ctx->window_config->width)
-      draw_end_x = current_scene->window_ctx->window_config->width - 1;
+    if (draw_end_x >= scene->window_ctx->window_config->width)
+      draw_end_x = scene->window_ctx->window_config->width - 1;
 
     for (int stripe = draw_start_x; stripe < draw_end_x; stripe++)
     {
       int tex_x = (int)(256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) *
                         DEFAULT_TEXTURE_WIDTH / sprite_width) /
                   256;
-      if (transform.y > 0 && stripe > 0 && stripe < current_scene->window_ctx->window_config->width &&
-          transform.y < current_scene->player.intersects[stripe].perp_wall_distance)
+      if (transform.y > 0 && stripe > 0 && stripe < scene->window_ctx->window_config->width &&
+          transform.y < scene->player.intersects[stripe].perp_wall_distance)
       {
         for (int y = draw_start_y; y < draw_end_y; y++)
         {
-          int d = (y) * 256 - current_scene->window_ctx->window_config->height * 128 + sprite_height * 128;
+          int d = (y) * 256 - scene->window_ctx->window_config->height * 128 + sprite_height * 128;
           int tex_y = ((d * DEFAULT_TEXTURE_HEIGHT) / sprite_height) / 256;
-          color = current_scene
+          color = scene
                       ->textures[static_sprites.sprites[static_sprites.sprite_order[i]]
                                      .texture]
                       .pixels[DEFAULT_TEXTURE_WIDTH * tex_y + tex_x];
@@ -312,113 +306,74 @@ void renderer_sprites()
     }
   }
   unlock_texture(texture);
-  render_copy(current_scene->window_ctx->renderer, texture, NULL, NULL);
+  render_copy(scene->window_ctx->renderer, texture, NULL, NULL);
   destroy_texture(texture);
 }
 
-void render_floor_and_ceil()
+void render_floor_and_ceil(Scene *scene)
 {
   Texture *texture = create_texture(
-      current_scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      current_scene->window_ctx->window_config->width, current_scene->window_ctx->window_config->height);
+      scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+      scene->window_ctx->window_config->width, scene->window_ctx->window_config->height);
   void *pixels;
   int pitch;
   lock_texture(texture, NULL, &pixels, &pitch);
-  memset(pixels, 0xFFFFFF00, pitch * current_scene->window_ctx->window_config->height);
+  memset(pixels, 0xFFFFFF00, pitch * scene->window_ctx->window_config->height);
   uint32_t *pixel_data = (uint32_t *)pixels;
   uint32_t color;
 
   int w, h;
-  get_window_size_in_pixels(current_scene->window_ctx->window, &w, &h);
+  get_window_size_in_pixels(scene->window_ctx->window, &w, &h);
   for (int y = h / 2; y < h; ++y)
   {
-    // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
-    float rayDirX0 = current_scene->player.actor->dir.x - current_scene->player.plane.x;
-    float rayDirY0 = current_scene->player.actor->dir.y - current_scene->player.plane.y;
-    float rayDirX1 = current_scene->player.actor->dir.x + current_scene->player.plane.x;
-    float rayDirY1 = current_scene->player.actor->dir.y + current_scene->player.plane.y;
+    float rayDirX0 = scene->player.actor->dir.x - scene->player.plane.x;
+    float rayDirY0 = scene->player.actor->dir.y - scene->player.plane.y;
+    float rayDirX1 = scene->player.actor->dir.x + scene->player.plane.x;
+    float rayDirY1 = scene->player.actor->dir.y + scene->player.plane.y;
 
-    // Current y position compared to the center of the screen (the horizon)
     int p = y - h / 2;
     if (p == 0)
-      p = 1; // Prevent division by zero
+      p = 1;
     if (p < 0)
-      p = 1; // Avoid negative p values
+      p = 1;
 
-    // Vertical position of the camera.
-    // NOTE: with 0.5, it's exactly in the center between floor and ceiling,
-    // matching also how the walls are being raycasted. For different values
-    // than 0.5, a separate loop must be done for ceiling and floor since
-    // they're no longer symmetrical.
     float posZ = 0.5 * h;
 
-    // Horizontal distance from the camera to the floor for the current row.
-    // 0.5 is the z position exactly in the middle between floor and ceiling.
-    // NOTE: this is affine textures mapping, which is not perspective correct
-    // except for perfectly horizontal and vertical surfaces like the floor.
-    // NOTE: this formula is explained as follows: The camera ray goes through
-    // the following two points: the camera itself, which is at a certain
-    // height (posZ), and a point in front of the camera (through an imagined
-    // vertical plane containing the screen pixels) with horizontal distance
-    // 1 from the camera, and vertical position p lower than posZ (posZ - p).
-    // When going through that point, the line has vertically traveled by p
-    // units and horizontally by 1 unit. To hit the floor, it instead needs to
-    // travel by posZ units. It will travel the same ratio horizontally. The
-    // ratio was 1 / p for going through the camera plane, so to go posZ times
-    // farther to reach the floor, we get that the total horizontal distance is
-    // posZ / p.
     float rowDistance = posZ / p;
+    if (rowDistance == 0)
+      rowDistance = 0.1;
 
-    // calculate the real world step vector we have to add for each x (parallel
-    // to camera plane) adding step by step avoids multiplications with a weight
-    // in the inner loop
     float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / w;
     float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / w;
 
-    // real world coordinates of the leftmost column. This will be updated as we
-    // step to the right.
     float floorX =
-        current_scene->player.actor->pos.x / DEFAULT_MAP_UNIT_SIZE + rowDistance * rayDirX0;
+        scene->player.actor->pos.x / DEFAULT_MAP_UNIT_SIZE + rowDistance * rayDirX0;
     float floorY =
-        current_scene->player.actor->pos.y / DEFAULT_MAP_UNIT_SIZE + rowDistance * rayDirY0;
+        scene->player.actor->pos.y / DEFAULT_MAP_UNIT_SIZE + rowDistance * rayDirY0;
 
     for (int x = 0; x < w; x++)
     {
-      // the cell coord is simply got from the integer parts of floorX and
-      // floorY
       int cellX = (int)(floorX);
       int cellY = (int)(floorY);
 
-      // if (x % 2 && y == game_window.height / 2 + 1)
-      //   printf("y: %d, x: %d, floorX: %f, floorY: %f, floorStepX: %f,
-      //   floorStepY: %f, cellX: %d, cellY: %d\n", y, x, floorX, floorY,
-      //   floorStepX, floorStepY, cellX, cellY);
-
-      // get the textures coordinate from the fractional part
       int tx = (int)(DEFAULT_TEXTURE_WIDTH * (floorX - cellX)) % DEFAULT_TEXTURE_WIDTH;
       int ty = (int)(DEFAULT_TEXTURE_HEIGHT * (floorY - cellY)) % DEFAULT_TEXTURE_HEIGHT;
-
-      // if (x == 0)
-      //   printf("y: %d, x: %d, tx: %d, ty: %d\n", y, x, tx, ty);
 
       floorX += floorStepX;
       floorY += floorStepY;
 
-      // floor
       if (cellX >= 0 && cellX <= 23 && cellY >= 0 && cellY <= 23)
       {
-        // Floor
-        int texture_index = current_scene->map.floor[cellY][cellX];
-        color = current_scene->textures[current_scene->map.floor[cellY][cellX]]
+        int texture_index = scene->map.floor[cellY][cellX];
+        color = scene->textures[scene->map.floor[cellY][cellX]]
                     .pixels[DEFAULT_TEXTURE_HEIGHT * ty + tx];
         pixel_data[(y * (pitch / 4)) + x] = color;
 
-        // Ceil
         cellY--;
         if (cellY < 0)
           cellY = 0;
 
-        color = current_scene->textures[current_scene->map.ceil[cellY][cellX]]
+        color = scene->textures[scene->map.ceil[cellY][cellX]]
                     .pixels[DEFAULT_TEXTURE_HEIGHT * ty + tx];
         pixel_data[((h - y) * (pitch / 4)) + x] = color;
       }
@@ -430,28 +385,28 @@ void render_floor_and_ceil()
     }
   }
   unlock_texture(texture);
-  render_copy(current_scene->window_ctx->renderer, texture, NULL, NULL);
+  render_copy(scene->window_ctx->renderer, texture, NULL, NULL);
   destroy_texture(texture);
 }
 
-void render_walls()
+void render_walls(Scene *scene)
 {
   Texture *texture = create_texture(
-      current_scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      current_scene->window_ctx->window_config->width, current_scene->window_ctx->window_config->height);
+      scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+      scene->window_ctx->window_config->width, scene->window_ctx->window_config->height);
   set_texture_blend_mode(texture, SDL_BLENDMODE_BLEND);
   void *pixels;
   int pitch;
   lock_texture(texture, NULL, &pixels, &pitch);
-  memset(pixels, 0, pitch * current_scene->window_ctx->window_config->height);
+  memset(pixels, 0, pitch * scene->window_ctx->window_config->height);
   uint32_t *pixel_data = (uint32_t *)pixels;
   uint32_t color;
 
   int w, h;
-  get_window_size_in_pixels(current_scene->window_ctx->window, &w, &h);
+  get_window_size_in_pixels(scene->window_ctx->window, &w, &h);
   for (int x = 0; x < w; x++)
   {
-    WallIntersect intersect = current_scene->player.intersects[x];
+    WallIntersect intersect = scene->player.intersects[x];
     int line_height = (int)h / intersect.perp_wall_distance;
     if (line_height == 0)
       line_height = 1;
@@ -462,16 +417,12 @@ void render_walls()
     if (draw_end >= h)
       draw_end = h - 1;
 
-    // TODO: This is causing segfaults, currently patched with if statements
-    // Select the texture based on the walls type (example: intersect.side could
-    // be used for this)
-    if (intersect.map_x < 0 || intersect.map_x > current_scene->map.width)
+    if (intersect.map_x < 0 || intersect.map_x > scene->map.width)
       intersect.map_x = 0;
-    if (intersect.map_y < 0 || intersect.map_y > current_scene->map.height)
+    if (intersect.map_y < 0 || intersect.map_y > scene->map.height)
       intersect.map_y = 0;
-    int tex_num = current_scene->map.walls[intersect.map_y][intersect.map_x] - 1;
-    // Calculate the exact x-coordinate on the texture
-    double wall_x; // Exact position where the walls was hit
+    int tex_num = scene->map.walls[intersect.map_y][intersect.map_x] - 1;
+    double wall_x;
     if (intersect.side == 0)
       wall_x = intersect.vect.y;
     else
@@ -489,13 +440,13 @@ void render_walls()
     for (int y = draw_start; y <= draw_end; y++)
     {
       // Calculate the corresponding y position on the texture
-      int tex_y = (((y * 2 - current_scene->window_ctx->window_config->height + line_height) * DEFAULT_TEXTURE_HEIGHT) /
+      int tex_y = (((y * 2 - scene->window_ctx->window_config->height + line_height) * DEFAULT_TEXTURE_HEIGHT) /
                    line_height) /
                   2;
 
       // Get the color from the texture
       if (tex_num >= 0)
-        color = current_scene->textures[tex_num].pixels[DEFAULT_TEXTURE_HEIGHT * tex_y + tex_x];
+        color = scene->textures[tex_num].pixels[DEFAULT_TEXTURE_HEIGHT * tex_y + tex_x];
       else
         color = 0xFF00FFFF;
 
@@ -508,7 +459,7 @@ void render_walls()
     }
   }
   unlock_texture(texture);
-  render_copy(current_scene->window_ctx->renderer, texture, NULL, NULL);
+  render_copy(scene->window_ctx->renderer, texture, NULL, NULL);
   destroy_texture(texture);
 }
 
