@@ -78,3 +78,33 @@ add_custom_target(distclean
   COMMAND rm -rf ${CMAKE_BINARY_DIR}
   COMMENT "Remove build directory and all generated files"
 )
+
+# Unit tests
+enable_testing()
+
+set(TEST_INCLUDES
+  ${CMAKE_SOURCE_DIR}/include/actors
+  ${CMAKE_SOURCE_DIR}/include/core
+  ${CMAKE_SOURCE_DIR}/include/interface
+  ${CMAKE_SOURCE_DIR}/include/sim
+  ${CMAKE_SOURCE_DIR}/include/util
+  ${CMAKE_SOURCE_DIR}/include/render
+  ${CMAKE_SOURCE_DIR}/include/event
+  ${CMAKE_SOURCE_DIR}/include/input
+)
+
+add_executable(test_vector
+  tests/unity.c
+  tests/test_vector.c
+  src/util/vector.c
+)
+target_include_directories(test_vector PRIVATE ${TEST_INCLUDES})
+add_test(NAME vector_tests COMMAND test_vector)
+
+add_executable(test_map
+  tests/unity.c
+  tests/test_map.c
+  src/sim/map.c
+)
+target_include_directories(test_map PRIVATE ${TEST_INCLUDES})
+add_test(NAME map_tests COMMAND test_map)
