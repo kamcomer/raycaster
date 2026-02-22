@@ -2,13 +2,15 @@
 #include "window_ctx.h"
 #include "config.h"
 #include "event.h"
+#include "timing.h"
 
 #include <stdio.h>
 #include <SDL_image.h>
 
-int initialize_SDL()
+#define FIXED_DT 0.0166667f  // 60 Hz fixed timestep
+
+int initialize_SDL(void)
 {
-  // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
     fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n",
@@ -19,13 +21,13 @@ int initialize_SDL()
   if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
   {
     fprintf(stderr, "IMG_Init Error: %s\n", IMG_GetError());
-    SDL_Quit(); // Clean up SDL
-    return 1;   // or handle the error appropriately
+    SDL_Quit();
+    return 1;
   }
   return 0;
 }
 
-void release_SDL_resources()
+void release_SDL_resources(void)
 {
   IMG_Quit();
   SDL_Quit();
@@ -33,6 +35,9 @@ void release_SDL_resources()
 
 int main(int argc, char *argv[])
 {
+  (void)argc;
+  (void)argv;
+
   initialize_SDL();
   Config *config = init_config();
   WindowCtx *window_ctx = create_window_ctx(config->window_config);
@@ -40,15 +45,27 @@ int main(int argc, char *argv[])
   set_current_scene(scene);
   window_ctx->render_function = render_fp_scene;
 
-  SDL_Event event;
+  GameTiming timing;
+  timing_init(&timing);
+
+  int target_fps = config->window_config->max_fps;
+
   while (!window_ctx->state.quit)
   {
     handle_window_events(window_ctx->window);
 
+    timing_update(&timing);
+
+    while (timing.accumulator >= FIXED_DT)
+    {
+      update_player(&scene->player, FIXED_DT);
+      timing.accumulator -= FIXED_DT;
+    }
+
+    timing_cap_fps(target_fps);
+
     window_ctx->render_function();
     render_present(window_ctx->renderer);
-
-    update_player(&scene->player);
   }
 
   free_scene(scene);

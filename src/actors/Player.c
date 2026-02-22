@@ -1,8 +1,11 @@
 #include "player.h"
 #include "config.h"
 #include "Scene.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-void process_player_movement(Player *player, float frame_time, Map map)
+void process_player_movement(Player *player, float delta_time, Map map)
 {
   Actor *actor = player->actor;
 
@@ -24,19 +27,19 @@ void process_player_movement(Player *player, float frame_time, Map map)
   {
     if (state[UP])
     {
-      move_actor(actor, 1, map, frame_time);
+      move_actor(actor, 1, map, delta_time);
     }
     else
     {
-      move_actor(actor, -1, map, frame_time);
+      move_actor(actor, -1, map, delta_time);
     }
   }
 }
 
-void update_player(Player *player)
+void update_player(Player *player, float delta_time)
 {
   Scene *scene = get_current_scene();
-  process_player_movement(player, 1 / scene->window_ctx->state.fps, scene->map);
+  process_player_movement(player, delta_time, scene->map);
   rotate_vector(&player->plane,
                 player->actor->dir.angle - player->plane.angle + PI_2);
   cast_player_rays(player, scene->map);
@@ -141,27 +144,42 @@ Player create_player(WindowCtx *window_ctx)
 {
   Player player;
   player.actor = malloc(sizeof(Actor));
+  if (!player.actor)
+  {
+    fprintf(stderr, "Failed to allocate memory for actor\n");
+    exit(1);
+  }
 
   player.window_ctx = window_ctx;
   player.actor->size = PLAYER_SIZE;
   player.actor->field_of_view = PLAYER_FOV * DEG_TO_RAD;
   player.actor->turn_speed = PLAYER_TURN_SPEED;
 
-  // Allocate memory for the player's view cone
   player.actor->view_cone = malloc(sizeof(Vector) * window_ctx->window_config->width);
+  if (!player.actor->view_cone)
+  {
+    fprintf(stderr, "Failed to allocate memory for view cone\n");
+    free(player.actor);
+    exit(1);
+  }
   player.actor->max_vel = PLAYER_MAX_SPEED;
   player.actor->accel = PLAYER_ACCEL;
 
-  // Initialize player's position and velocity
   player.actor->pos = set_vector(2 * (double)window_ctx->window_config->width / 3 - 1,
                                  2 * (double)window_ctx->window_config->height / 3 - 1);
   player.actor->velocity = set_vector(0, 0);
   player.actor->dir = set_vector(-1, 0);
 
-  // Calculate the player's plane (used for field of view in 3D rendering)
   player.plane =
       set_vector(0, player.actor->dir.x * tan(player.actor->field_of_view / 2));
   player.intersects = malloc(sizeof(WallIntersect) * window_ctx->window_config->width);
+  if (!player.intersects)
+  {
+    fprintf(stderr, "Failed to allocate memory for intersects\n");
+    free(player.actor->view_cone);
+    free(player.actor);
+    exit(1);
+  }
 
   return player;
 }
