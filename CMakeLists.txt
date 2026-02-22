@@ -24,6 +24,8 @@ set(SOURCES
   src/platform/sdl/sdl_window_event.c
   src/render/texture.c
   src/sim/Scene.c
+  src/sim/render_2d.c
+  src/sim/render_fp.c
   src/sim/map.c
   src/sim/sprite.c
   src/actors/Player.c

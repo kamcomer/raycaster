@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "render_fp.h"
 #include "config.h"
 #include "event.h"
 #include "timing.h"
