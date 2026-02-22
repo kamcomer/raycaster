@@ -31,6 +31,7 @@ set(SOURCES
   src/util/utility.c
   src/util/vector.c
   src/util/timing.c
+  src/render/hud.c
 )
 
 # Include directories

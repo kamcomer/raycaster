@@ -1,8 +1,8 @@
 #include "scene.h"
-#include "window_ctx.h"
 #include "config.h"
 #include "event.h"
 #include "timing.h"
+#include "renderer.h"
 
 #include <stdio.h>
 #include <SDL_image.h>
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     while (timing.accumulator >= FIXED_DT)
     {
-      update_player(&scene->player, FIXED_DT);
+      update_player(&scene->player, FIXED_DT, scene->map);
       timing.accumulator -= FIXED_DT;
     }
 

@@ -36,13 +36,12 @@ void process_player_movement(Player *player, float delta_time, Map map)
   }
 }
 
-void update_player(Player *player, float delta_time)
+void update_player(Player *player, float delta_time, Map map)
 {
-  Scene *scene = get_current_scene();
-  process_player_movement(player, delta_time, scene->map);
+  process_player_movement(player, delta_time, map);
   rotate_vector(&player->plane,
                 player->actor->dir.angle - player->plane.angle + PI_2);
-  cast_player_rays(player, scene->map);
+  cast_player_rays(player, map);
 }
 
 void cast_player_rays(Player *player, Map map)

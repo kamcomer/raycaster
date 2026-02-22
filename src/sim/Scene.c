@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "hud.h"
 
 #include <SDL.h>
 #include <SDL_render.h>
@@ -212,11 +213,12 @@ void render_player_view_rays(Player player)
   }
 }
 
-void render_fp_scene()
+void render_fp_scene(void)
 {
   render_floor_and_ceil();
   render_walls();
   renderer_sprites();
+  render_hud(current_scene);
 }
 
 void renderer_sprites()
