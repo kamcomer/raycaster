@@ -66,6 +66,6 @@ typedef enum {
     // Add more if needed
 } KeyScancode;
 
-uint8_t *get_keyboard_state();
+uint8_t *get_keyboard_state(void);
 
 #endif 

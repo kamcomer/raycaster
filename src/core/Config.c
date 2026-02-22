@@ -33,12 +33,20 @@ static FILE *open_config()
     return file;
 }
 
-// TODO: Create error handeling when window_config file is formatted wrong
-static Config *read_config()
+static Config *read_config(FILE *file)
 {
-    FILE *file = open_config();
+    if (!file)
+        return NULL;
+
     Config *config = malloc(sizeof(Config));
+    if (!config)
+        return NULL;
     config->window_config = malloc(sizeof(WindowConfig));
+    if (!config->window_config)
+    {
+        free(config);
+        return NULL;
+    }
 
     char line[256];
     while (fgets(line, sizeof(line), file))
@@ -68,22 +76,27 @@ Config *init_config()
     FILE *file = open_config();
     if (!file)
     {
-        create_config(file);
+        if (create_config() != 0)
+            return NULL;
+        file = open_config();
         if (!file)
             return NULL;
     }
 
-    Config *window_config = read_config(file);
+    Config *config = read_config(file);
     fclose(file);
-    return window_config;
+    return config;
 }
 
 void print_config()
 {
     FILE *file = open_config();
+    if (!file)
+        return;
     char line[256];
     while (fgets(line, sizeof(line), file))
     {
         printf("%s", line);
     }
+    fclose(file);
 }

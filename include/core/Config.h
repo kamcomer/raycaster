@@ -22,7 +22,7 @@ typedef struct
     PlayerConfig *player_config;
 } Config;
 
-Config *init_config();
-void print_config();
+Config *init_config(void);
+void print_config(void);
 
 #endif

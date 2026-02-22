@@ -57,7 +57,7 @@ uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr_height
 }
 
 // TODO: have some issues rendering textures with alpha channels
-TextureData *create_textures()
+TextureData *create_textures(void)
 {
   // int textures[8][DEFAULT_TEXTURE_HEIGHT * DEFAULT_TEXTURE_WIDTH];
   TextureData *textures = malloc(sizeof(TextureData) * 11);
@@ -116,10 +116,22 @@ TextureData *create_textures()
     }
   }
 
+  free(t0);
+  free(t1);
+  free(t2);
+  free(t3);
+  free(t4);
+  free(t5);
+  free(t6);
+  free(t7);
+  free(t8);
+  free(t9);
+  free(t10);
+
   return textures;
 }
 
-TextureData *createProgrammaticTextures()
+TextureData *createProgrammaticTextures(void)
 {
   TextureData *textures = malloc(sizeof(TextureData) * 11);
   textures[0].pixels = malloc(sizeof(int) * (DEFAULT_TEXTURE_WIDTH * DEFAULT_TEXTURE_HEIGHT));
@@ -138,7 +150,6 @@ TextureData *createProgrammaticTextures()
     for (int current_row = 0; current_row < DEFAULT_TEXTURE_HEIGHT; current_row++)
     {
       int xorcolor = (current_col * 256 / DEFAULT_TEXTURE_WIDTH) ^ (current_row * 256 / DEFAULT_TEXTURE_HEIGHT);
-      int xcolor = current_col * 256 / DEFAULT_TEXTURE_WIDTH;
       int ycolor = current_row * 256 / DEFAULT_TEXTURE_HEIGHT;
       int xycolor = current_row * 128 / DEFAULT_TEXTURE_HEIGHT + current_col * 128 / DEFAULT_TEXTURE_WIDTH;
       textures[0].pixels[DEFAULT_TEXTURE_WIDTH * current_row + current_col] =

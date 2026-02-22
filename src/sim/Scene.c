@@ -5,6 +5,9 @@
 #include <SDL_image.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 static Scene *current_scene = NULL;
 
@@ -59,7 +62,20 @@ Scene *create_scene(WindowCtx *window_ctx, char *map_path)
   static_sprites.sprites[2].texture = 8;
   static_sprites.num_sprites = 3;
   static_sprites.sprite_order = malloc(sizeof(int) * static_sprites.num_sprites);
+  if (static_sprites.sprite_order == NULL)
+  {
+    fprintf(stderr, "Failed to allocate memory for sprite order\n");
+    free(static_sprites.sprites);
+    exit(1);
+  }
   static_sprites.sprite_dist = malloc(sizeof(double) * static_sprites.num_sprites);
+  if (static_sprites.sprite_dist == NULL)
+  {
+    fprintf(stderr, "Failed to allocate memory for sprite dist\n");
+    free(static_sprites.sprites);
+    free(static_sprites.sprite_order);
+    exit(1);
+  }
 
   // Set the map and player for the scene
   scene->map = map;
@@ -77,10 +93,10 @@ void render_scene(void (*render)())
   render(*current_scene);
 }
 
-void render_2d_scene()
+void render_2d_scene(void)
 {
   render_2d_map(*current_scene);
-  render_2d_player(current_scene->player);
+  render_2d_player();
 }
 
 void render_2d_map(Scene scene)
@@ -167,9 +183,10 @@ void render_actor_vel_dir(Actor actor)
 {
   set_render_draw_color(current_scene->window_ctx->renderer, 255, 255, 255, 255);
   set_vector_magnitude(&actor.velocity, 10);
-  translate_vector(&actor.pos, actor.velocity);
+  Vector vel_endpoint = set_vector(actor.pos.x + actor.velocity.x,
+                                   actor.pos.y + actor.velocity.y);
   render_draw_line(current_scene->window_ctx->renderer,
-                   actor.pos.x, actor.pos.y, actor.velocity.x, actor.velocity.y);
+                   actor.pos.x, actor.pos.y, vel_endpoint.x, vel_endpoint.y);
 }
 
 void render_actor_view_rays(Actor actor)

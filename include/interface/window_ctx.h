@@ -11,7 +11,7 @@ typedef struct
     Window *window;
     Renderer *renderer;
     WindowState state;
-    void (*render_function)();
+    void (*render_function)(void);
 } WindowCtx;
 
 WindowCtx *create_window_ctx(WindowConfig *config);

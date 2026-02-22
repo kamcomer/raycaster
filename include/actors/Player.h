@@ -50,10 +50,10 @@ typedef struct
 } Player;
 
 Player create_player(WindowCtx *window_ctx);
-void update_player(Player *player);
+void update_player(Player *player, float delta_time);
 void free_player(Player *player);
 void cast_player_rays(Player *player, Map map);
-void process_player_motion(Player *player, float fps, Map map);
+void process_player_motion(Player *player, float delta_time, Map map);
 WallIntersect get_wall_intersect(Vector origin, Vector ray, Map map);
 
 #endif

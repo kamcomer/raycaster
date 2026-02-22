@@ -1,8 +1,17 @@
 #include "window_ctx.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+static int initialize_window_context(WindowCtx *ctx);
 
 WindowCtx *create_window_ctx(WindowConfig *config)
 {
     WindowCtx *ctx = malloc(sizeof(WindowCtx));
+    if (!ctx)
+    {
+        fprintf(stderr, "Failed to allocate memory for window context\n");
+        return NULL;
+    }
     ctx->window_config = config;
 
     ctx->window = create_window(config->title, config->width, config->height);

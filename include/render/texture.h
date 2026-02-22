@@ -13,7 +13,7 @@ typedef struct
   int width;
 } TextureData;
 
-TextureData *create_textures();
+TextureData *create_textures(void);
 uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr_height);
 void free_texture(TextureData *texture);
 
