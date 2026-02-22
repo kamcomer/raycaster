@@ -2,6 +2,9 @@
 #include "player.h"
 #include "scene.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 void handle_window_events(Window *win)
 {
     WindowEvent event;
