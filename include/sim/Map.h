@@ -1,7 +1,6 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <SDL.h>
 #include <stdint.h>
 
 #define DEFAULT_MAP_WIDTH 24
@@ -20,7 +19,7 @@ typedef struct
 
 Map load_map(char *filename);
 void print_map(Map map);
-void load_map_grid_from_file(const char *filename, Map *map);
+int load_map_grid_from_file(const char *filename, Map *map);
 void free_map(Map map);
 
 #endif

@@ -8,6 +8,9 @@
 #include "sprite.h"
 #include "texture.h"
 
+struct Texture;
+typedef struct Texture Texture;
+
 typedef struct
 {
   Actor *actors;
@@ -40,6 +43,9 @@ typedef struct
   SceneDynamicSprites dynamic_sprites;
   TextureData *textures;
   WindowCtx *window_ctx;
+  Texture *wall_texture;
+  Texture *floor_ceil_texture;
+  Texture *sprite_texture;
 } Scene;
 
 Scene *create_scene(WindowCtx *window_ctx, char *map_path);

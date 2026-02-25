@@ -26,10 +26,7 @@ void renderer_sprites(Scene *scene)
   player_pos.x /= DEFAULT_MAP_UNIT_SIZE;
   player_pos.y /= DEFAULT_MAP_UNIT_SIZE;
 
-  Texture *texture = create_texture(
-      scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      scene->window_ctx->window_config->width,
-      scene->window_ctx->window_config->height);
+  Texture *texture = scene->sprite_texture;
   set_texture_blend_mode(texture, SDL_BLENDMODE_BLEND);
 
   void *pixels;
@@ -112,14 +109,11 @@ void renderer_sprites(Scene *scene)
   }
   unlock_texture(texture);
   render_copy(scene->window_ctx->renderer, texture, NULL, NULL);
-  destroy_texture(texture);
 }
 
 void render_floor_and_ceil(Scene *scene)
 {
-  Texture *texture = create_texture(
-      scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      scene->window_ctx->window_config->width, scene->window_ctx->window_config->height);
+  Texture *texture = scene->floor_ceil_texture;
   void *pixels;
   int pitch;
   lock_texture(texture, NULL, &pixels, &pitch);
@@ -191,14 +185,11 @@ void render_floor_and_ceil(Scene *scene)
   }
   unlock_texture(texture);
   render_copy(scene->window_ctx->renderer, texture, NULL, NULL);
-  destroy_texture(texture);
 }
 
 void render_walls(Scene *scene)
 {
-  Texture *texture = create_texture(
-      scene->window_ctx->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      scene->window_ctx->window_config->width, scene->window_ctx->window_config->height);
+  Texture *texture = scene->wall_texture;
   set_texture_blend_mode(texture, SDL_BLENDMODE_BLEND);
   void *pixels;
   int pitch;
@@ -256,5 +247,4 @@ void render_walls(Scene *scene)
   }
   unlock_texture(texture);
   render_copy(scene->window_ctx->renderer, texture, NULL, NULL);
-  destroy_texture(texture);
 }

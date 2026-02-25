@@ -39,10 +39,37 @@ int main(int argc, char *argv[])
   (void)argc;
   (void)argv;
 
-  initialize_SDL();
+  if (initialize_SDL() != 0)
+  {
+    return 1;
+  }
+
   Config *config = init_config();
+  if (!config)
+  {
+    fprintf(stderr, "Failed to initialize config\n");
+    release_SDL_resources();
+    return 1;
+  }
+
   WindowCtx *window_ctx = create_window_ctx(config->window_config);
+  if (!window_ctx)
+  {
+    fprintf(stderr, "Failed to create window context\n");
+    free_config(config);
+    release_SDL_resources();
+    return 1;
+  }
+
   Scene *scene = create_scene(window_ctx, "assets/maps/map.txt");
+  if (!scene)
+  {
+    fprintf(stderr, "Failed to create scene\n");
+    free_window_ctx(window_ctx);
+    free_config(config);
+    release_SDL_resources();
+    return 1;
+  }
 
   GameTiming timing;
   timing_init(&timing);
@@ -69,6 +96,7 @@ int main(int argc, char *argv[])
 
   free_scene(scene);
   free_window_ctx(window_ctx);
+  free_config(config);
   release_SDL_resources();
   return 0;
 }

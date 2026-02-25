@@ -1,6 +1,7 @@
 #include "map.h"
 #include "config.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 // Function to print the map values to the console
 void print_map(Map map)
@@ -40,18 +41,28 @@ Map load_map(char *filename)
 {
   Map map;
   map.unit_size = DEFAULT_MAP_UNIT_SIZE;
-  load_map_grid_from_file(filename, &map);
+  map.walls = NULL;
+  map.ceil = NULL;
+  map.floor = NULL;
+  map.width = 0;
+  map.height = 0;
+
+  if (load_map_grid_from_file(filename, &map) != 0)
+  {
+    free_map(map);
+    return map;
+  }
   return map;
 }
 
-void load_map_grid_from_file(const char *filename, Map *map)
+int load_map_grid_from_file(const char *filename, Map *map)
 {
   // Open the file
   FILE *file = fopen(filename, "r");
   if (!file)
   {
     fprintf(stderr, "Failed to open map file: %s\n", filename);
-    exit(1);
+    return -1;
   }
 
   // Read the width and height of the map
@@ -68,7 +79,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
     if (ceil) free(ceil);
     if (floor) free(floor);
     fclose(file);
-    return;
+    return -1;
   }
 
   for (int i = 0; i < map->height; i++)
@@ -78,7 +89,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
     {
       fprintf(stderr, "Failed to allocate memory for walls row\n");
       fclose(file);
-      return;
+      return -1;
     }
 
     // Read each value into the map
@@ -88,7 +99,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
       {
         fprintf(stderr, "Failed to read value for walls[%d][%d]\n", i, j);
         fclose(file);
-        return;
+        return -1;
       }
     }
   }
@@ -100,7 +111,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
     {
       fprintf(stderr, "Failed to allocate memory for ceil row\n");
       fclose(file);
-      return;
+      return -1;
     }
 
     // Read each value into the map
@@ -110,7 +121,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
       {
         fprintf(stderr, "Failed to read value for ceil[%d][%d]\n", i, j);
         fclose(file);
-        return;
+        return -1;
       }
     }
   }
@@ -122,7 +133,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
     {
       fprintf(stderr, "Failed to allocate memory for floor row\n");
       fclose(file);
-      return;
+      return -1;
     }
 
     // Read each value into the map
@@ -132,7 +143,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
       {
         fprintf(stderr, "Failed to read value for floor[%d][%d]\n", i, j);
         fclose(file);
-        return;
+        return -1;
       }
     }
   }
@@ -140,6 +151,7 @@ void load_map_grid_from_file(const char *filename, Map *map)
   map->ceil = ceil;
   map->floor = floor;
   fclose(file);
+  return 0;
 }
 
 // Function to free the dynamically allocated map memory
