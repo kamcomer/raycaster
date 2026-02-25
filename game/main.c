@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     config.height = 600;
     config.target_fps = 60;
     config.show_fps = true;
+    config.strip_count = 1;
 
     RcEngine *engine = rc_engine_create(config);
     if (!engine) {

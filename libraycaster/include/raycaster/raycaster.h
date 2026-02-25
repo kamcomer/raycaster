@@ -21,6 +21,7 @@ typedef struct RcConfig
     int target_fps;
     bool show_fps;
     const char *map_file;
+    int strip_count;
 } RcConfig;
 
 typedef struct RcLevel

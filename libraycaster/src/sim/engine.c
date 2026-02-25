@@ -35,8 +35,12 @@ struct RcEngine
     RcTextureData *textures;
 
     SDL_Texture *wall_texture;
+    SDL_Texture *wall_textures[11];
     SDL_Texture *floor_ceil_texture;
     SDL_Texture *sprite_texture;
+    SDL_Texture *floor_texture;
+    SDL_Texture *ceiling_texture;
+    SDL_Texture *sprite_textures[3];
 };
 
 void rc_config_set_defaults(RcConfig *cfg)
@@ -49,6 +53,7 @@ void rc_config_set_defaults(RcConfig *cfg)
     cfg->target_fps = 60;
     cfg->show_fps = false;
     cfg->map_file = NULL;
+    cfg->strip_count = 4;
 }
 
 static int init_sdl(void)
@@ -224,19 +229,114 @@ RcEngine *rc_engine_create(RcConfig config)
 
     e->textures = create_textures();
 
-    int w = config.width;
-    int h = config.height;
-    e->wall_texture = SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-    e->floor_ceil_texture = SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-    e->sprite_texture = SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-    
-    if (!e->wall_texture || !e->floor_ceil_texture || !e->sprite_texture)
+    if (!e->textures)
     {
-        fprintf(stderr, "Failed to create render textures\n");
+        fprintf(stderr, "Failed to create textures\n");
+        rc_camera_destroy(e->camera);
+        SDL_DestroyRenderer(e->renderer);
+        SDL_DestroyWindow(e->window);
+        free(e);
+        shutdown_sdl();
+        return NULL;
     }
-    
-    SDL_SetTextureBlendMode(e->sprite_texture, SDL_BLENDMODE_BLEND);
-    SDL_SetTextureBlendMode(e->wall_texture, SDL_BLENDMODE_BLEND);
+
+    for (int i = 0; i < 11; i++)
+    {
+        e->wall_textures[i] = SDL_CreateTexture(
+            e->renderer,
+            SDL_PIXELFORMAT_RGBA8888,
+            SDL_TEXTUREACCESS_STATIC,
+            RC_TEXTURE_WIDTH,
+            RC_TEXTURE_HEIGHT);
+        if (!e->wall_textures[i])
+        {
+            fprintf(stderr, "Failed to create wall texture %d\n", i);
+        }
+        else
+        {
+            SDL_SetTextureBlendMode(e->wall_textures[i], SDL_BLENDMODE_NONE);
+            SDL_UpdateTexture(e->wall_textures[i], NULL, e->textures[i].pixels, RC_TEXTURE_WIDTH * 4);
+        }
+    }
+
+    e->wall_texture = SDL_CreateTexture(
+        e->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        config.width,
+        config.height);
+    if (e->wall_texture)
+    {
+        SDL_SetTextureBlendMode(e->wall_texture, SDL_BLENDMODE_BLEND);
+    }
+
+    e->floor_ceil_texture = SDL_CreateTexture(
+        e->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        config.width,
+        config.height);
+    if (e->floor_ceil_texture)
+    {
+        SDL_SetTextureBlendMode(e->floor_ceil_texture, SDL_BLENDMODE_BLEND);
+    }
+
+    e->sprite_texture = SDL_CreateTexture(
+        e->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        config.width,
+        config.height);
+    if (e->sprite_texture)
+    {
+        SDL_SetTextureBlendMode(e->sprite_texture, SDL_BLENDMODE_BLEND);
+    }
+
+    int floor_tex = 7;
+    e->floor_texture = SDL_CreateTexture(
+        e->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STATIC,
+        RC_TEXTURE_WIDTH,
+        RC_TEXTURE_HEIGHT);
+    if (e->floor_texture)
+    {
+        SDL_SetTextureBlendMode(e->floor_texture, SDL_BLENDMODE_NONE);
+        SDL_UpdateTexture(e->floor_texture, NULL, e->textures[floor_tex].pixels, RC_TEXTURE_WIDTH * 4);
+    }
+
+    int ceil_tex = 3;
+    e->ceiling_texture = SDL_CreateTexture(
+        e->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STATIC,
+        RC_TEXTURE_WIDTH,
+        RC_TEXTURE_HEIGHT);
+    if (e->ceiling_texture)
+    {
+        SDL_SetTextureBlendMode(e->ceiling_texture, SDL_BLENDMODE_NONE);
+        SDL_UpdateTexture(e->ceiling_texture, NULL, e->textures[ceil_tex].pixels, RC_TEXTURE_WIDTH * 4);
+    }
+
+    for (int i = 0; i < 3; i++)
+    {
+        int tex_num = 8 + i;
+        e->sprite_textures[i] = SDL_CreateTexture(
+            e->renderer,
+            SDL_PIXELFORMAT_RGBA8888,
+            SDL_TEXTUREACCESS_STATIC,
+            RC_TEXTURE_WIDTH,
+            RC_TEXTURE_HEIGHT);
+        if (!e->sprite_textures[i])
+        {
+            fprintf(stderr, "Failed to create sprite texture %d\n", i);
+        }
+        else
+        {
+            SDL_SetTextureBlendMode(e->sprite_textures[i], SDL_BLENDMODE_BLEND);
+            SDL_UpdateTexture(e->sprite_textures[i], NULL, e->textures[tex_num].pixels, RC_TEXTURE_WIDTH * 4);
+        }
+    }
 
     e->last_time = SDL_GetTicks();
     e->accumulator = 0.0f;
@@ -269,10 +369,24 @@ void rc_engine_destroy(RcEngine *e)
 
     if (e->wall_texture)
         SDL_DestroyTexture(e->wall_texture);
+    for (int i = 0; i < 11; i++)
+    {
+        if (e->wall_textures[i])
+            SDL_DestroyTexture(e->wall_textures[i]);
+    }
     if (e->floor_ceil_texture)
         SDL_DestroyTexture(e->floor_ceil_texture);
     if (e->sprite_texture)
         SDL_DestroyTexture(e->sprite_texture);
+    if (e->floor_texture)
+        SDL_DestroyTexture(e->floor_texture);
+    if (e->ceiling_texture)
+        SDL_DestroyTexture(e->ceiling_texture);
+    for (int i = 0; i < 3; i++)
+    {
+        if (e->sprite_textures[i])
+            SDL_DestroyTexture(e->sprite_textures[i]);
+    }
 
     shutdown_sdl();
     free(e);
@@ -360,7 +474,6 @@ static void render(RcEngine *e)
         return;
 
     int w = e->config.width;
-    int h = e->config.height;
     double *z_buffer = malloc(sizeof(double) * w);
 
     SDL_SetRenderDrawColor(e->renderer, 30, 30, 50, 255);
@@ -559,100 +672,6 @@ static void render_sprites(RcEngine *e, double *z_buffer)
     free(sprite_order);
 }
 
-static void update(RcEngine *e)
-{
-    if (!e)
-        return;
-
-    if (e->update_fn && e->game_state)
-    {
-        e->update_fn(e->game_state, e, e->delta_time);
-    }
-
-    RcInput *in = e->input;
-    RcCamera *cam = e->camera;
-    RcWorld *world = e->world;
-
-    if (!in || !cam || !world)
-        return;
-
-    float move_speed = 0.05f;
-    float rot_speed = 0.03f;
-
-    if (rc_input_down(in, RC_KEY_W))
-    {
-        double new_x = cam->pos.x + cam->dir.x * move_speed;
-        double new_y = cam->pos.y + cam->dir.y * move_speed;
-        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
-        if (wall == 0)
-        {
-            cam->pos.x = new_x;
-            cam->pos.y = new_y;
-        }
-    }
-    if (rc_input_down(in, RC_KEY_S))
-    {
-        double new_x = cam->pos.x - cam->dir.x * move_speed;
-        double new_y = cam->pos.y - cam->dir.y * move_speed;
-        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
-        if (wall == 0)
-        {
-            cam->pos.x = new_x;
-            cam->pos.y = new_y;
-        }
-    }
-    if (rc_input_down(in, RC_KEY_A))
-    {
-        double new_x = cam->pos.x - cam->plane.x * move_speed;
-        double new_y = cam->pos.y - cam->plane.y * move_speed;
-        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
-        if (wall == 0)
-        {
-            cam->pos.x = new_x;
-            cam->pos.y = new_y;
-        }
-    }
-    if (rc_input_down(in, RC_KEY_D))
-    {
-        double new_x = cam->pos.x + cam->plane.x * move_speed;
-        double new_y = cam->pos.y + cam->plane.y * move_speed;
-        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
-        if (wall == 0)
-        {
-            cam->pos.x = new_x;
-            cam->pos.y = new_y;
-        }
-    }
-    if (rc_input_down(in, RC_KEY_LEFT))
-    {
-        rc_camera_rotate(cam, -rot_speed);
-    }
-    if (rc_input_down(in, RC_KEY_RIGHT))
-    {
-        rc_camera_rotate(cam, rot_speed);
-    }
-    if (rc_input_down(in, RC_KEY_ESCAPE))
-    {
-        e->running = false;
-    }
-}
-
-static void handle_events(RcEngine *e)
-{
-    if (!e || !e->input)
-        return;
-
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-        if (event.type == SDL_QUIT)
-        {
-            e->running = false;
-        }
-    }
-    rc_input_update(e->input);
-}
-
 static void render_walls(RcEngine *e, double *z_buffer)
 {
     RcCamera *cam = e->camera;
@@ -792,6 +811,100 @@ static void render_walls(RcEngine *e, double *z_buffer)
     
     SDL_UnlockTexture(texture);
     SDL_RenderCopy(r, texture, NULL, NULL);
+}
+
+static void update(RcEngine *e)
+{
+    if (!e)
+        return;
+
+    if (e->update_fn && e->game_state)
+    {
+        e->update_fn(e->game_state, e, e->delta_time);
+    }
+
+    RcInput *in = e->input;
+    RcCamera *cam = e->camera;
+    RcWorld *world = e->world;
+
+    if (!in || !cam || !world)
+        return;
+
+    float move_speed = 0.05f;
+    float rot_speed = 0.03f;
+
+    if (rc_input_down(in, RC_KEY_W))
+    {
+        double new_x = cam->pos.x + cam->dir.x * move_speed;
+        double new_y = cam->pos.y + cam->dir.y * move_speed;
+        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+        if (wall == 0)
+        {
+            cam->pos.x = new_x;
+            cam->pos.y = new_y;
+        }
+    }
+    if (rc_input_down(in, RC_KEY_S))
+    {
+        double new_x = cam->pos.x - cam->dir.x * move_speed;
+        double new_y = cam->pos.y - cam->dir.y * move_speed;
+        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+        if (wall == 0)
+        {
+            cam->pos.x = new_x;
+            cam->pos.y = new_y;
+        }
+    }
+    if (rc_input_down(in, RC_KEY_A))
+    {
+        double new_x = cam->pos.x - cam->plane.x * move_speed;
+        double new_y = cam->pos.y - cam->plane.y * move_speed;
+        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+        if (wall == 0)
+        {
+            cam->pos.x = new_x;
+            cam->pos.y = new_y;
+        }
+    }
+    if (rc_input_down(in, RC_KEY_D))
+    {
+        double new_x = cam->pos.x + cam->plane.x * move_speed;
+        double new_y = cam->pos.y + cam->plane.y * move_speed;
+        int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+        if (wall == 0)
+        {
+            cam->pos.x = new_x;
+            cam->pos.y = new_y;
+        }
+    }
+    if (rc_input_down(in, RC_KEY_LEFT))
+    {
+        rc_camera_rotate(cam, -rot_speed);
+    }
+    if (rc_input_down(in, RC_KEY_RIGHT))
+    {
+        rc_camera_rotate(cam, rot_speed);
+    }
+    if (rc_input_down(in, RC_KEY_ESCAPE))
+    {
+        e->running = false;
+    }
+}
+
+static void handle_events(RcEngine *e)
+{
+    if (!e || !e->input)
+        return;
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        if (event.type == SDL_QUIT)
+        {
+            e->running = false;
+        }
+    }
+    rc_input_update(e->input);
 }
 
 void rc_engine_run(RcEngine *e)
