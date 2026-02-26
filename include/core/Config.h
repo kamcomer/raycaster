@@ -23,6 +23,7 @@ typedef struct
 } Config;
 
 Config *init_config(void);
+void free_config(Config *config);
 void print_config(void);
 
 #endif

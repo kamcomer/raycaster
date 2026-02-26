@@ -16,6 +16,7 @@ set(RAYCASTER_SOURCES
     src/sim/engine.c
     src/render/frame.c
     src/render/texture.c
+    src/render/gpu_renderer.c
     src/input/input_sdl.c
     src/platform/sdl/sdl_window.c
     src/platform/sdl/sdl_renderer.c
@@ -29,6 +30,7 @@ set(RAYCASTER_PUBLIC_HEADERS
     include/raycaster/world.h
     include/raycaster/actor.h
     include/raycaster/raycaster.h
+    include/raycaster/gpu_renderer.h
 )
 
 add_library(raycaster STATIC ${RAYCASTER_SOURCES} ${RAYCASTER_PUBLIC_HEADERS})
@@ -48,7 +50,7 @@ target_include_directories(raycaster PRIVATE
     ${CMAKE_SOURCE_DIR}/include/input
 )
 
-target_link_libraries(raycaster PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
+target_link_libraries(raycaster PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
 
 set_target_properties(raycaster PROPERTIES
     PUBLIC_HEADER "${RAYCASTER_PUBLIC_HEADERS}"

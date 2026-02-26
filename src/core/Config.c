@@ -100,3 +100,15 @@ void print_config()
     }
     fclose(file);
 }
+
+void free_config(Config *config)
+{
+    if (!config)
+        return;
+    if (config->window_config)
+    {
+        free(config->window_config->title);
+        free(config->window_config);
+    }
+    free(config);
+}

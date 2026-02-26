@@ -1,13 +1,13 @@
 #include "raycaster/input.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
 struct RcInput
 {
     const uint8_t *keyboard_state;
-    uint8_t prev_keyboard_state[SDL_NUM_SCANCODES];
+    uint8_t prev_keyboard_state[SDL_SCANCODE_COUNT];
     bool quit_requested;
 };
 
@@ -15,10 +15,10 @@ static SDL_Keycode rc_key_to_sdl(RcKey key)
 {
     switch (key)
     {
-    case RC_KEY_W: return SDLK_w;
-    case RC_KEY_S: return SDLK_s;
-    case RC_KEY_A: return SDLK_a;
-    case RC_KEY_D: return SDLK_d;
+    case RC_KEY_W: return SDLK_W;
+    case RC_KEY_S: return SDLK_S;
+    case RC_KEY_A: return SDLK_A;
+    case RC_KEY_D: return SDLK_D;
     case RC_KEY_UP: return SDLK_UP;
     case RC_KEY_DOWN: return SDLK_DOWN;
     case RC_KEY_LEFT: return SDLK_LEFT;
@@ -114,7 +114,7 @@ void rc_input_update(RcInput *in)
         return;
 
     SDL_Scancode sc;
-    for (int i = 0; i < SDL_NUM_SCANCODES; i++)
+    for (int i = 0; i < SDL_SCANCODE_COUNT; i++)
     {
         in->prev_keyboard_state[i] = in->keyboard_state[i];
     }
@@ -122,7 +122,7 @@ void rc_input_update(RcInput *in)
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        if (event.type == SDL_QUIT)
+        if (event.type == SDL_EVENT_QUIT)
         {
             in->quit_requested = true;
         }

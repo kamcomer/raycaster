@@ -13,34 +13,76 @@ A Wolfenstein 3D-style raycasting engine written in C using SDL2.
 
 ## Building
 
+### Full Build
+
+```bash
+mkdir -p build && cd build
+cmake ..
+make
+```
+
+### Incremental Build
+
+```bash
+cd build
+make
+```
+
+### Clean Build
+
+```bash
+rm -rf build && mkdir build && cd build
+cmake ..
+make
+```
+
 ### Prerequisites
 
 - CMake 3.19+
 - SDL2
 - SDL2_image
 
-### Build Commands
+#### macOS (Homebrew)
 
-```bash
-mkdir build && cd build
-cmake ..
-make
-```
-
-On macOS with Homebrew:
 ```bash
 brew install sdl2 sdl2_image
 ```
 
-On Linux:
+#### Linux
+
 ```bash
 sudo apt install libsdl2-dev libsdl2-image-dev
 ```
+
+#### Windows
+
+CMake automatically downloads SDL2 from `packages/` subdirectory.
 
 ## Running
 
 ```bash
 ./build/main
+```
+
+### Debugging (VS Code)
+
+The project includes `.vscode/launch.json` for debugging. Press F5 in VS Code to build and debug.
+
+## Testing
+
+Run unit tests with CTest:
+
+```bash
+cd build
+ctest --output-on-failure
+```
+
+Individual tests can also be run:
+
+```bash
+./build/test_vector
+./build/test_map
+./build/test_sprite
 ```
 
 ## Configuration
@@ -83,7 +125,11 @@ assets/
 
 ## Map Format
 
-Maps are text files with:
-- First line: width height
+Maps are text files in `assets/maps/` with:
+- First line: `width height` (e.g., `16 16`)
 - Subsequent lines: wall types (0 = empty, 1+ = textured walls)
-- Texture indices map to files in `assets/textures/`
+
+Texture indices map to files in `assets/textures/`:
+- 1 → `wall1.png`
+- 2 → `wall2.png`
+- etc.

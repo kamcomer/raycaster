@@ -12,6 +12,17 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Add the raycaster library
+add_subdirectory(libraycaster)
+
+# Add SDL (needed by both main and game)
+set(SDL2IMAGE_VENDORED OFF)
+add_subdirectory(packages/SDL EXCLUDE_FROM_ALL)
+add_subdirectory(packages/SDL_image EXCLUDE_FROM_ALL)
+
+# Add game
+add_subdirectory(game)
+
 # Define source files explicitly
 set(SOURCES
   src/main.c
@@ -24,7 +35,6 @@ set(SOURCES
   src/platform/sdl/sdl_window_event.c
   src/render/texture.c
   src/sim/Scene.c
-  src/sim/render_2d.c
   src/sim/render_fp.c
   src/sim/map.c
   src/sim/sprite.c
@@ -52,10 +62,6 @@ set(INCLUDES
 add_executable(main ${SOURCES})
 target_include_directories(main PRIVATE ${INCLUDES})
 
-set(SDL2IMAGE_VENDORED OFF)
-add_subdirectory(packages/SDL EXCLUDE_FROM_ALL)
-add_subdirectory(packages/SDL_image EXCLUDE_FROM_ALL)
-
 if(WIN32)
   add_custom_command(
     TARGET main POST_BUILD
@@ -70,8 +76,8 @@ if(WIN32)
   )
 endif()
 
-target_link_libraries(main PRIVATE SDL2::SDL2 SDL2::SDL2main SDL2_image::SDL2_image)
-target_include_directories(main PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
+target_link_libraries(main PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
+target_include_directories(main PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
 
 # Custom targets
 add_custom_target(distclean
@@ -108,3 +114,11 @@ add_executable(test_map
 )
 target_include_directories(test_map PRIVATE ${TEST_INCLUDES})
 add_test(NAME map_tests COMMAND test_map)
+
+add_executable(test_sprite
+  tests/unity.c
+  tests/test_sprite.c
+  src/sim/sprite.c
+)
+target_include_directories(test_sprite PRIVATE ${TEST_INCLUDES})
+add_test(NAME sprite_tests COMMAND test_sprite)

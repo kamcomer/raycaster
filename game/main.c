@@ -1,4 +1,5 @@
 #include <raycaster/raycaster.h>
+#include <raycaster/gpu_renderer.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -6,6 +7,15 @@ int main(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
+
+    printf("Testing GPU renderer...\n");
+    RcGPURenderer *gpu = rc_gpu_renderer_create(NULL);
+    if (gpu) {
+        printf("GPU renderer initialized!\n");
+        rc_gpu_renderer_destroy(gpu);
+    } else {
+        printf("GPU renderer not available, using SDL_Render\n");
+    }
 
     RcConfig config;
     rc_config_set_defaults(&config);

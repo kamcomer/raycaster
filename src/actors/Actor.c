@@ -1,6 +1,8 @@
 #include "actor.h"
 #include "config.h"
 #include "input.h"
+
+#include <math.h>
 #include <stdbool.h>
 
 void rotate_actor(Actor *actor, float angle)

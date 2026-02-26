@@ -1,7 +1,7 @@
 #include "raycaster/raycaster.h"
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -64,19 +64,11 @@ static int init_sdl(void)
         return -1;
     }
 
-    if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
-    {
-        fprintf(stderr, "IMG_Init failed: %s\n", IMG_GetError());
-        SDL_Quit();
-        return -1;
-    }
-
     return 0;
 }
 
 static void shutdown_sdl(void)
 {
-    IMG_Quit();
     SDL_Quit();
 }
 
@@ -85,17 +77,17 @@ static uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr
     SDL_Surface *texture_surface = IMG_Load(file_path);
     if (!texture_surface)
     {
-        fprintf(stderr, "Could not load image: %s\n", IMG_GetError());
+        fprintf(stderr, "Could not load image: %s\n", SDL_GetError());
         return NULL;
     }
 
     *ptr_width = texture_surface->w;
     *ptr_height = texture_surface->h;
 
-    SDL_Surface *formatted_surface = SDL_ConvertSurfaceFormat(
-        texture_surface, SDL_PIXELFORMAT_RGBA8888, 0);
+    SDL_Surface *formatted_surface = SDL_ConvertSurface(
+        texture_surface, SDL_PIXELFORMAT_RGBA8888);
 
-    SDL_FreeSurface(texture_surface);
+    SDL_DestroySurface(texture_surface);
     if (!formatted_surface)
     {
         fprintf(stderr, "Could not convert surface to RGBA8888: %s\n",
@@ -108,7 +100,7 @@ static uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr
     if (!texture_pixels)
     {
         fprintf(stderr, "Could not allocate memory for pixel data\n");
-        SDL_FreeSurface(formatted_surface);
+        SDL_DestroySurface(formatted_surface);
         return NULL;
     }
 
@@ -122,7 +114,7 @@ static uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr
         }
     }
 
-    SDL_FreeSurface(formatted_surface);
+    SDL_DestroySurface(formatted_surface);
 
     return texture_pixels;
 }
@@ -199,9 +191,8 @@ RcEngine *rc_engine_create(RcConfig config)
     e->running = false;
     e->window = SDL_CreateWindow(
         config.title ? config.title : "Raycaster",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         config.width, config.height,
-        SDL_WINDOW_SHOWN);
+        0);
 
     if (!e->window)
     {
@@ -211,7 +202,9 @@ RcEngine *rc_engine_create(RcConfig config)
         return NULL;
     }
 
-    e->renderer = SDL_CreateRenderer(e->window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_SetWindowPosition(e->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+
+    e->renderer = SDL_CreateRenderer(e->window, NULL);
     if (!e->renderer)
     {
         fprintf(stderr, "Failed to create renderer: %s\n", SDL_GetError());
@@ -561,7 +554,7 @@ static void render_floor_ceiling(RcEngine *e)
     }
     
     SDL_UnlockTexture(texture);
-    SDL_RenderCopy(r, texture, NULL, NULL);
+    SDL_RenderTexture(r, texture, NULL, NULL);
 }
 
 static void render_sprites(RcEngine *e, double *z_buffer)
@@ -666,7 +659,7 @@ static void render_sprites(RcEngine *e, double *z_buffer)
     }
     
     SDL_UnlockTexture(texture);
-    SDL_RenderCopy(r, texture, NULL, NULL);
+    SDL_RenderTexture(r, texture, NULL, NULL);
 
     free(sprite_dist);
     free(sprite_order);
@@ -810,7 +803,7 @@ static void render_walls(RcEngine *e, double *z_buffer)
     }
     
     SDL_UnlockTexture(texture);
-    SDL_RenderCopy(r, texture, NULL, NULL);
+    SDL_RenderTexture(r, texture, NULL, NULL);
 }
 
 static void update(RcEngine *e)
@@ -899,7 +892,7 @@ static void handle_events(RcEngine *e)
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        if (event.type == SDL_QUIT)
+        if (event.type == SDL_EVENT_QUIT)
         {
             e->running = false;
         }
