@@ -7,6 +7,7 @@
 #include "player.h"
 #include "sprite.h"
 #include "texture.h"
+#include "raycaster/gpu_renderer.h"
 
 struct Texture;
 typedef struct Texture Texture;
@@ -46,6 +47,8 @@ typedef struct
   Texture *wall_texture;
   Texture *floor_ceil_texture;
   Texture *sprite_texture;
+  RcGPURenderer *gpu_renderer;
+  bool use_gpu_renderer;
 } Scene;
 
 Scene *create_scene(WindowCtx *window_ctx, char *map_path);

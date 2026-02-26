@@ -1,12 +1,12 @@
 #include "renderer.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 Renderer *create_renderer(Window *win)
 {
-    SDL_Renderer *rend = SDL_CreateRenderer(
-        (SDL_Window*)win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_Renderer *rend = SDL_CreateRenderer((SDL_Window *)win, NULL);
 
     if (rend == NULL)
     {
@@ -24,9 +24,6 @@ Renderer *create_renderer(Window *win)
 
 void render_present(Renderer *rend)
 {
-    // ctx->render_function();
-    // if (ctx->window_config->show_fps)
-    //   update_frame_counter(ctx);
     SDL_RenderPresent((SDL_Renderer *)rend);
 }
 
@@ -42,12 +39,13 @@ void clear_renderer(Renderer *rend)
 
 void render_fill_rect(Renderer *rend, Rect *rect)
 {
-    SDL_RenderFillRect((SDL_Renderer *)rend, (SDL_Rect *)rect);
+    SDL_FRect frect = {(float)rect->x, (float)rect->y, (float)rect->w, (float)rect->h};
+    SDL_RenderFillRect((SDL_Renderer *)rend, &frect);
 }
 
 void render_draw_line(Renderer *rend, int x1, int y1, int x2, int y2)
 {
-    SDL_RenderDrawLine((SDL_Renderer *)rend, x1, y1, x2, y2);
+    SDL_RenderLine((SDL_Renderer *)rend, (float)x1, (float)y1, (float)x2, (float)y2);
 }
 
 Texture *create_texture(Renderer *rend, uint32_t format, uint8_t access_type,
@@ -66,6 +64,7 @@ void set_texture_blend_mode(Texture *tex, int mode)
 
 void lock_texture(Texture *tex, Rect *rect, void **pixels, int *pitch)
 {
+    (void)rect;
     SDL_LockTexture((SDL_Texture *)tex, NULL, pixels, pitch);
 }
 void unlock_texture(Texture *tex)
@@ -79,7 +78,26 @@ void destroy_texture(Texture *tex)
 
 void render_copy(Renderer *rend, Texture *tex, Rect *rect1, Rect *rect2)
 {
-    SDL_RenderCopy((SDL_Renderer *)rend, (SDL_Texture *)tex, (SDL_Rect *)rect1, (SDL_Rect *)rect2);
+    SDL_FRect *src = NULL;
+    SDL_FRect *dst = NULL;
+    SDL_FRect src_rect;
+    SDL_FRect dst_rect;
+    
+    if (rect1) {
+        src_rect.x = (float)rect1->x;
+        src_rect.y = (float)rect1->y;
+        src_rect.w = (float)rect1->w;
+        src_rect.h = (float)rect1->h;
+        src = &src_rect;
+    }
+    if (rect2) {
+        dst_rect.x = (float)rect2->x;
+        dst_rect.y = (float)rect2->y;
+        dst_rect.w = (float)rect2->w;
+        dst_rect.h = (float)rect2->h;
+        dst = &dst_rect;
+    }
+    SDL_RenderTexture((SDL_Renderer *)rend, (SDL_Texture *)tex, src, dst);
 }
 
 void free_renderer(Renderer *rend)

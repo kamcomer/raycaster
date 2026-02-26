@@ -4,9 +4,10 @@
 #include "sprite.h"
 #include "texture.h"
 #include "window_ctx.h"
+#include "raycaster/gpu_renderer.h"
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
@@ -14,9 +15,40 @@
 
 void render_fp_scene(Scene *scene)
 {
-  render_floor_and_ceil(scene);
-  render_walls(scene);
-  renderer_sprites(scene);
+  if (scene->use_gpu_renderer && scene->gpu_renderer)
+  {
+    Player *player = &scene->player;
+    WindowConfig *win_config = scene->window_ctx->window_config;
+    
+    rc_gpu_renderer_begin_frame(scene->gpu_renderer);
+    
+    rc_gpu_renderer_draw_scene(
+        scene->gpu_renderer,
+        player->actor->pos.x,
+        player->actor->pos.y,
+        player->actor->dir.x,
+        player->actor->dir.y,
+        player->plane.x,
+        player->plane.y,
+        win_config->width,
+        win_config->height,
+        &scene->map.walls[0][0],
+        scene->map.width,
+        scene->map.height,
+        player->intersects,
+        win_config->width,
+        NULL,
+        0
+    );
+    
+    rc_gpu_renderer_end_frame(scene->gpu_renderer);
+  }
+  else
+  {
+    render_floor_and_ceil(scene);
+    render_walls(scene);
+    renderer_sprites(scene);
+  }
   render_hud(scene);
 }
 

@@ -37,6 +37,7 @@ add_library(raycaster STATIC ${RAYCASTER_SOURCES} ${RAYCASTER_PUBLIC_HEADERS})
 
 target_include_directories(raycaster PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/shaders
 )
 target_include_directories(raycaster PRIVATE
     ${CMAKE_SOURCE_DIR}/include
@@ -48,9 +49,10 @@ target_include_directories(raycaster PRIVATE
     ${CMAKE_SOURCE_DIR}/include/render
     ${CMAKE_SOURCE_DIR}/include/event
     ${CMAKE_SOURCE_DIR}/include/input
+    ${CMAKE_SOURCE_DIR}/packages/SDL_shadercross/include
 )
 
-target_link_libraries(raycaster PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
+target_link_libraries(raycaster PRIVATE SDL3::SDL3 SDL3_image::SDL3_image SDL3_shadercross::SDL3_shadercross)
 
 set_target_properties(raycaster PROPERTIES
     PUBLIC_HEADER "${RAYCASTER_PUBLIC_HEADERS}"

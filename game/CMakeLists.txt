@@ -9,6 +9,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/packages/SDL/include
     ${CMAKE_SOURCE_DIR}/packages/SDL_image/include
+    ${CMAKE_SOURCE_DIR}/packages/SDL_shadercross/include
 )
 
 add_executable(game main.c)

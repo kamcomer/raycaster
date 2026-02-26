@@ -1,5 +1,5 @@
 #include "input.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 uint8_t* get_keyboard_state()
 {

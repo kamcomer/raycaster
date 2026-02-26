@@ -16,9 +16,13 @@ endif()
 add_subdirectory(libraycaster)
 
 # Add SDL (needed by both main and game)
-set(SDL2IMAGE_VENDORED OFF)
+set(SDL3IMAGE_VENDORED OFF)
 add_subdirectory(packages/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(packages/SDL_image EXCLUDE_FROM_ALL)
+add_subdirectory(packages/SDL_shadercross EXCLUDE_FROM_ALL)
+
+# Add shader directory
+set(SHADERS_DIR "${CMAKE_SOURCE_DIR}/shaders")
 
 # Add game
 add_subdirectory(game)
@@ -56,6 +60,8 @@ set(INCLUDES
   ${CMAKE_SOURCE_DIR}/include/render
   ${CMAKE_SOURCE_DIR}/include/event
   ${CMAKE_SOURCE_DIR}/include/input
+  ${CMAKE_SOURCE_DIR}/shaders
+  ${CMAKE_SOURCE_DIR}/libraycaster/include
 )
 
 # Add project executable
@@ -76,7 +82,7 @@ if(WIN32)
   )
 endif()
 
-target_link_libraries(main PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
+target_link_libraries(main PRIVATE SDL3::SDL3 SDL3_image::SDL3_image raycaster)
 target_include_directories(main PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
 
 # Custom targets

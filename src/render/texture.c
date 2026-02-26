@@ -1,14 +1,15 @@
 #include "texture.h"
 #include <stdio.h>
-#include <SDL.h>
-#include <SDL_image.h>
+#include <stdlib.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr_height)
 {
   SDL_Surface *texture_surface = IMG_Load(file_path);
   if (!texture_surface)
   {
-    fprintf(stderr, "Could not load image: %s\n", IMG_GetError());
+    fprintf(stderr, "Could not load image: %s\n", SDL_GetError());
     return NULL;
   }
 
@@ -16,10 +17,10 @@ uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr_height
   *ptr_height = texture_surface->h;
 
   // Convert surface to RGBA8888 format
-  SDL_Surface *formatted_surface = SDL_ConvertSurfaceFormat(
-      texture_surface, SDL_PIXELFORMAT_RGBA8888, 0);
+  SDL_Surface *formatted_surface = SDL_ConvertSurface(
+      texture_surface, SDL_PIXELFORMAT_RGBA8888);
 
-  SDL_FreeSurface(texture_surface);
+  SDL_DestroySurface(texture_surface);
   if (!formatted_surface)
   {
     fprintf(stderr, "Could not convert surface to RGBA8888: %s\n",
@@ -28,14 +29,14 @@ uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr_height
   }
 
   printf("Loaded surface: %dx%d, format: %d\n", formatted_surface->w,
-         formatted_surface->h, formatted_surface->format->format);
+         formatted_surface->h, formatted_surface->format);
 
   uint32_t *texture_pixels =
       malloc(formatted_surface->w * formatted_surface->h * sizeof(uint32_t));
   if (!texture_pixels)
   {
     fprintf(stderr, "Could not allocate memory for pixel data\n");
-    SDL_FreeSurface(formatted_surface);
+    SDL_DestroySurface(formatted_surface);
     return NULL;
   }
 
@@ -51,7 +52,7 @@ uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr_height
     }
   }
 
-  SDL_FreeSurface(formatted_surface);
+  SDL_DestroySurface(formatted_surface);
 
   return texture_pixels;
 }

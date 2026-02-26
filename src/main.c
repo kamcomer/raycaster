@@ -4,9 +4,10 @@
 #include "event.h"
 #include "timing.h"
 #include "renderer.h"
+#include "raycaster/gpu_renderer.h"
 
 #include <stdio.h>
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 
 #define FIXED_DT 0.0166667f  // 60 Hz fixed timestep
 
@@ -19,18 +20,11 @@ int initialize_SDL(void)
     return 1;
   }
 
-  if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
-  {
-    fprintf(stderr, "IMG_Init Error: %s\n", IMG_GetError());
-    SDL_Quit();
-    return 1;
-  }
   return 0;
 }
 
 void release_SDL_resources(void)
 {
-  IMG_Quit();
   SDL_Quit();
 }
 
@@ -61,15 +55,8 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  printf("Creating scene...\n");
   Scene *scene = create_scene(window_ctx, "assets/maps/map.txt");
-  if (!scene)
-  {
-    fprintf(stderr, "Failed to create scene\n");
-    free_window_ctx(window_ctx);
-    free_config(config);
-    release_SDL_resources();
-    return 1;
-  }
 
   GameTiming timing;
   timing_init(&timing);

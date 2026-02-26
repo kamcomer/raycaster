@@ -1,14 +1,13 @@
 #include "window.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <stdio.h>
 
 Window *create_window(char *title, int width, int height)
 {
   SDL_Window *win = SDL_CreateWindow(title,
-                                     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                      width, height,
-                                     SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+                                     SDL_WINDOW_RESIZABLE);
 
   if (win == NULL)
   {

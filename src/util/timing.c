@@ -1,5 +1,5 @@
 #include "timing.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <stdio.h>
 
 #define FIXED_DT 0.0166667f  // 60 Hz fixed timestep (1/60)

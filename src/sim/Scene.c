@@ -3,9 +3,9 @@
 #include "hud.h"
 #include "renderer.h"
 
-#include <SDL.h>
-#include <SDL_render.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3_image/SDL_image.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -121,6 +121,9 @@ Scene *create_scene(WindowCtx *window_ctx, char *map_path)
   set_texture_blend_mode(scene->sprite_texture, SDL_BLENDMODE_BLEND);
   set_texture_blend_mode(scene->wall_texture, SDL_BLENDMODE_BLEND);
 
+  scene->use_gpu_renderer = false;
+  printf("Using CPU renderer (GPU not available)\n");
+
   return scene;
 }
 
@@ -133,6 +136,10 @@ void render_scene(Scene *scene, void (*render)(Scene*))
 
 void free_scene(Scene *scene)
 {
+  if (scene->gpu_renderer)
+  {
+    rc_gpu_renderer_destroy(scene->gpu_renderer);
+  }
   free_player(&scene->player);
   free_map(scene->map);
   free_texture(scene->textures);
