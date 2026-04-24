@@ -1,15 +1,18 @@
 import sys
 import tkinter as tk
+from tkinter import filedialog
 from typing import Any
+import os
 
 import pygame
-from pygame.image import save
 import pygame_gui
+from PIL import Image
+from pygame.image import save
 
-from map_editor import MapEditor
-from screen_area import ScreenAreaBounds, ScreenArea
-from texture_pallet import TexturePallet
 from layout_manager import LayoutManager
+from map_editor import MapEditor
+from screen_area import ScreenArea, ScreenAreaBounds
+from texture_pallet import TexturePallet
 
 DEFAULT_SCREEN_SIZE = (800, 450)
 DEFAULT_MAP_AREA_SIZE = (650, 450)
@@ -49,6 +52,32 @@ class OptionsBar:
             self._manager,
             anchors={"left_target": import_btn},
         )
+
+    def pil_to_surface(self, pil_image):
+        """Converts a PIL image to a Pygame surface."""
+        # Use tobytes() to get the raw pixel data
+        data = pil_image.tobytes()
+        size = pil_image.size
+        mode = pil_image.mode  # Typically 'RGB' or 'RGBA'
+
+        # Create the surface and convert it for optimized performance
+        return pygame.image.frombytes(data, size, mode).convert_alpha()
+
+    def import_texture(self):
+        file_path = filedialog.askopenfilename()
+        if not file_path:
+            return
+
+        file_name = os.path.basename(file_path)
+        image = Image.open(file_path)
+        img_surf = self.pil_to_surface(image)
+        print(img_surf)
+        # pygame_gui.elements.UIImage(
+        #     pygame.Rect(32, 200, 128, 128),
+        #     img_surf,
+        #     self._manager,
+        #     container=self.root_element,
+        # )
 
     @property
     def area(self):

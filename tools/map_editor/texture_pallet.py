@@ -1,8 +1,4 @@
 from collections import defaultdict
-from PIL import Image
-import tkinter as tk
-from tkinter import filedialog
-import os
 import pygame_gui
 import pygame
 from functools import partial
@@ -62,40 +58,6 @@ class TexturePallet:
         self.add_element("root", root_element)
         # self._create_action_panel()
         self._create_texture_viewer()
-
-    def _create_action_panel(self):
-        panel_size = self.root_element.get_container().get_size()
-        action_panel = pygame_gui.elements.UIPanel(
-            pygame.Rect((0, 0), (panel_size[0], ACTION_PANEL_HEIGHT)),
-            manager=self._manager,
-            container=self.root_element,
-            anchors={"left": "left", "right": "right"},
-        )
-        action_container = pygame_gui.elements.UIScrollingContainer(
-            pygame.Rect((0, 0), (panel_size[0], ACTION_CONTAINER_HEIGHT)),
-            self._manager,
-            container=action_panel,
-            should_grow_automatically=True,
-            allow_scroll_y=False,
-            anchors={"left": "left", "right": "right", "top": "top"},
-        )
-
-        btn_import = self._create_button(
-            "actn_import",
-            "Import",
-            action_container,
-            {"left": "left", "top": "top"},
-            callback=self.import_texture,
-        )
-        self._create_button(
-            "actn_export",
-            "Export",
-            action_container,
-            {"left": "left", "top": "top", "left_target": btn_import},
-            callback=self.export,
-        )
-        self.add_element("action_panel", action_panel)
-        self.add_element("action_container", action_container)
 
     def _create_texture_viewer(self):
         root_size = self.root_element.get_container().get_size()
@@ -178,32 +140,6 @@ class TexturePallet:
 
     def export(self):
         print("export")
-
-    def import_texture(self):
-        file_path = filedialog.askopenfilename()
-        if not file_path:
-            return
-
-        file_name = os.path.basename(file_path)
-        image = Image.open(file_path)
-        img_surf = self.pil_to_surface(image)
-        print(img_surf)
-        pygame_gui.elements.UIImage(
-            pygame.Rect(32, 200, 128, 128),
-            img_surf,
-            self._manager,
-            container=self.root_element,
-        )
-
-    def pil_to_surface(self, pil_image):
-        """Converts a PIL image to a Pygame surface."""
-        # Use tobytes() to get the raw pixel data
-        data = pil_image.tobytes()
-        size = pil_image.size
-        mode = pil_image.mode  # Typically 'RGB' or 'RGBA'
-
-        # Create the surface and convert it for optimized performance
-        return pygame.image.frombytes(data, size, mode).convert_alpha()
 
     def update(self):
         pass
