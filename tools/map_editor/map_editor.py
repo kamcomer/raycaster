@@ -1,5 +1,6 @@
 import pygame
 from screen_area import ScreenArea
+from event_bus import EventBus
 
 
 class MapEditor:
@@ -7,7 +8,7 @@ class MapEditor:
         self,
         map_size: tuple[int, int],
         area: ScreenArea,
-        event_handlers: dict | None = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._area = area
 
@@ -23,15 +24,15 @@ class MapEditor:
         self.textures = []
         self.sprites = []
 
-        if event_handlers is not None:
-            self.subscribe_to_events(event_handlers)
+        if event_bus is not None:
+            self.subscribe_to_events(event_bus)
 
         self.create_grid()
         self.draw_grid_lines()
 
-    def subscribe_to_events(self, event_handlers: dict):
-        event_handlers[pygame.MOUSEBUTTONDOWN].append(self.handle_click)
-        event_handlers[pygame.WINDOWRESIZED].append(self.handle_resize)
+    def subscribe_to_events(self, event_bus: EventBus):
+        event_bus.subscribe(pygame.MOUSEBUTTONDOWN, self.handle_click)
+        event_bus.subscribe(pygame.WINDOWRESIZED, self.handle_resize)
 
     def update(self):
         pass

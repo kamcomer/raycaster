@@ -29,9 +29,10 @@ class LayoutManager:
         return sa
 
     def _calc_size(self, size_ratio: tuple[float, float], bounds: ScreenAreaBounds):
+        surface_size = self.target_surface.get_size()
         ratio_size = (
-            int(self.target_surface.size[0] * size_ratio[0]),
-            int(self.target_surface.size[1] * size_ratio[1]),
+            int(surface_size[0] * size_ratio[0]),
+            int(surface_size[1] * size_ratio[1]),
         )
 
         x = y = 0
@@ -52,9 +53,10 @@ class LayoutManager:
         return (x, y)
 
     def _calc_pos(self, offset_ratio: tuple[float, float]):
+        surface_size = self.target_surface.get_size()
         return (
-            int(self.target_surface.size[0] * offset_ratio[0]),
-            int(self.target_surface.size[1] * offset_ratio[1]),
+            int(surface_size[0] * offset_ratio[0]),
+            int(surface_size[1] * offset_ratio[1]),
         )
 
     def handle_resize(self, event):

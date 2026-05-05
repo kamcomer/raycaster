@@ -30,16 +30,18 @@ class ScreenArea:
 
     @property
     def size(self) -> tuple[int, int]:
-        return self.surface.size
+        return self.surface.get_size()
 
     @property
     def rect(self):
-        return pygame.Rect(0, 0, self.surface.size[0], self.surface.size[1])
+        surface_size = self.surface.get_size()
+        return pygame.Rect(0, 0, *surface_size)
 
     @property
     def abs_rect(self):
+        surface_size = self.surface.get_size()
         return pygame.Rect(
-            self.pos[0], self.pos[1], self.surface.size[0], self.surface.size[1]
+            self.pos[0], self.pos[1], *surface_size
         )
 
     def screen_to_area_pos(self, screen_pos: tuple[int, int]):

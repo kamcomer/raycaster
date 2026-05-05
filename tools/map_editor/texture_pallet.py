@@ -1,8 +1,8 @@
-from collections import defaultdict
 import pygame_gui
 import pygame
 from functools import partial
 from screen_area import ScreenArea
+from event_bus import EventBus
 
 ACTION_PANEL_HEIGHT = 60
 ACTION_CONTAINER_HEIGHT = 50
@@ -17,7 +17,7 @@ class TexturePallet:
         self,
         area: ScreenArea,
         manager: pygame_gui.UIManager,
-        event_handlers: dict | None = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._area = area
         self._manager = manager
@@ -25,29 +25,18 @@ class TexturePallet:
         self.sprites = []
 
         self.elements = {}
-        self.element_types = defaultdict(list)
-        self.element_callbacks = {}
 
-        if event_handlers is not None:
-            self.subscribe_to_events(event_handlers)
+        if event_bus is not None:
+            self.subscribe_to_events(event_bus)
 
         self._init_gui()
-
-    def add_element(self, name, element, callback=None):
-        element_type = type(element)
-        self.elements[name] = element
-        self.element_types[element_type].append(element)
-        if callback:
-            if element_type not in self.element_callbacks:
-                self.element_callbacks[element_type] = {}
-            self.element_callbacks[element_type][element] = callback
 
     def get_element(self, name):
         return self.elements[name]
 
-    def subscribe_to_events(self, event_handlers: dict):
-        event_handlers[pygame.WINDOWRESIZED].append(self.handle_resize)
-        event_handlers[pygame_gui.UI_BUTTON_PRESSED].append(self.handle_button)
+    def subscribe_to_events(self, event_bus: EventBus):
+        self._event_bus = event_bus
+        event_bus.subscribe(pygame.WINDOWRESIZED, self.handle_resize)
 
     def _init_gui(self):
         root_element = pygame_gui.elements.UIPanel(
@@ -55,31 +44,18 @@ class TexturePallet:
             manager=self._manager,
             element_id="texture_pallet",
         )
-        self.add_element("root", root_element)
+        self.elements["root"] = root_element
         # self._create_action_panel()
         self._create_texture_viewer()
 
     def _create_texture_viewer(self):
         root_size = self.root_element.get_container().get_size()
-        # texture_viewer = pygame_gui.elements.UIPanel(
-        #     pygame.Rect((0, 0), root_size),
-        #     manager=self._manager,
-        #     container=self.root_element,
-        #     anchors={
-        #         "left": "left",
-        #         "right": "right",
-        #         "top": "top",
-        #         "bottom": "bottom",
-        #     },
-        # )
 
         container = pygame_gui.elements.UIScrollingContainer(
             pygame.Rect((0, 0), root_size),
-            self._manager,
-            should_grow_automatically=True,
+            manager=self._manager,
             object_id=pygame_gui.core.ObjectID(object_id="#scroll_container"),
             container=self.root_element,
-            allow_scroll_x=False,
             anchors={
                 "left": "left",
                 "right": "right",
@@ -100,8 +76,12 @@ class TexturePallet:
                 container=container,
                 anchors={"left": "left", "right": "right"},
             )
-            self.add_element(f"btn_{i}", btn, partial(self._on_texture_item_clicked, i))
-        self.add_element("texture_container", container)
+            self.elements[f"btn_{i}"] = btn
+            if self._event_bus:
+                self._event_bus.subscribe_element(
+                    pygame_gui.UI_BUTTON_PRESSED, btn, partial(self._on_texture_item_clicked, i)
+                )
+        self.elements["texture_container"] = container
 
     def _create_button(self, name, text, container, anchors, callback=None):
         btn = pygame_gui.elements.UIButton(
@@ -121,16 +101,10 @@ class TexturePallet:
         self.elements["root"].set_relative_position(self._area.pos)
         self.elements["root"].set_dimensions(self._area.size)
 
-        for element in self.element_types[pygame_gui.elements.UIScrollingContainer]:
-            element_size = element.get_container().get_size()
-            element.set_scrollable_area_dimensions(element_size)
-
-    def handle_button(self, event):
-        callback = self.element_callbacks[pygame_gui.elements.UIButton].get(
-            event.ui_element, None
-        )
-        if callback:
-            callback()
+        container = self.elements.get("texture_container")
+        if container:
+            container_size = container.get_container().get_size()
+            container.set_scrollable_area_dimensions(container_size)
 
     def save(self):
         print("save")
