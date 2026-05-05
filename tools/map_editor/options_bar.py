@@ -31,11 +31,19 @@ class OptionsBar:
         self._event_bus = event_bus
 
     def _init_bar(self):
+        self.root_panel = pygame_gui.elements.UIPanel(
+            self.area.abs_rect,
+            manager=self._manager,
+            element_id="options_bar",
+        )
+        self.elements["root"] = self.root_panel
+
         save_btn = pygame_gui.elements.UIButton(
             pygame.Rect(0, 0, *OPTION_BTN_SIZE),
             "Save",
             self._manager,
-            anchors={},
+            container=self.root_panel,
+            anchors={"left": "left", "top": "top"},
         )
         self.elements["btn_save"] = save_btn
         if self._event_bus:
@@ -47,7 +55,8 @@ class OptionsBar:
             pygame.Rect(0, 0, 70, 30),
             "Load",
             self._manager,
-            anchors={"left_target": save_btn},
+            container=self.root_panel,
+            anchors={"left_target": save_btn, "top": "top"},
         )
         self.elements["btn_load"] = load_btn
         if self._event_bus:
@@ -59,7 +68,8 @@ class OptionsBar:
             pygame.Rect(0, 0, 70, 30),
             "Import",
             self._manager,
-            anchors={"left_target": load_btn},
+            container=self.root_panel,
+            anchors={"left_target": load_btn, "top": "top"},
         )
         self.elements["btn_import"] = import_btn
         if self._event_bus:
@@ -71,7 +81,8 @@ class OptionsBar:
             pygame.Rect(0, 0, 70, 30),
             "Export",
             self._manager,
-            anchors={"left_target": import_btn},
+            container=self.root_panel,
+            anchors={"left_target": import_btn, "top": "top"},
         )
         self.elements["btn_export"] = export_btn
         if self._event_bus:
@@ -116,12 +127,10 @@ class OptionsBar:
 
     @property
     def area(self):
-        if not self._area:
-            raise ValueError("Area not set")
         return self._area
 
     @area.setter
-    def surface(self, value: ScreenArea):
+    def area(self, value: ScreenArea):
         self._area = value
 
     @property

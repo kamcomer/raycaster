@@ -51,9 +51,6 @@ class MapEditor:
 
     @property
     def area(self):
-        if not self._area:
-            raise ValueError("Area not set")
-
         return self._area
 
     @area.setter
