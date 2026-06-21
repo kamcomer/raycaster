@@ -6,5 +6,6 @@ packages/*
 .vscode
 config.ini
 __pycache__/
-
-!packages/.gitkeep
+.DS_Store
+ 
+ !packages/.gitkeep
