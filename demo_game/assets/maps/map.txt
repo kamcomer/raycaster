@@ -1,3 +1,4 @@
+[MAP]
 24 24 
 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
 7 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
@@ -73,3 +74,19 @@
 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+
+[TEXTURES]
+assets/textures/bluestone.png
+assets/textures/colorstone.png
+assets/textures/eagle.png
+assets/textures/greystone.png
+assets/textures/mossy.png
+assets/textures/purplestone.png
+assets/textures/redbrick.png
+assets/textures/wood.png
+
+[SPRITES]
+assets/textures/pillar.png
+assets/textures/greenlight.png
+assets/textures/barrel.png
+

@@ -53,28 +53,32 @@ add_custom_command(
 
 set(RAYCASTER_SOURCES
     src/util/vector.c
-    src/sim/map_world.c
+    src/util/general.c
+    src/level/level.c
+    src/level/map_level.c
+    src/level/map_level_vtbl.c
     src/sim/actor.c
     src/sim/camera.c
     src/sim/engine.c
     src/render/frame.c
     src/render/texture.c
     src/render/gpu_renderer.c
-    ${SHADER_EMBED_SRC}
-    src/input/input_sdl.c
+    src/platform/sdl/sdl_input.c
     src/platform/sdl/sdl_window.c
     src/platform/sdl/sdl_renderer.c
     src/platform/sdl/sdl_window_event.c
+    ${SHADER_EMBED_SRC}
 )
 
 set(RAYCASTER_PUBLIC_HEADERS
     include/raycaster/types.h
     include/raycaster/input.h
     include/raycaster/camera.h
-    include/raycaster/world.h
+    include/raycaster/level.h
     include/raycaster/actor.h
     include/raycaster/raycaster.h
     include/raycaster/gpu_renderer.h
+    include/raycaster/vector.h
 )
 
 add_library(raycaster STATIC ${RAYCASTER_SOURCES} ${RAYCASTER_PUBLIC_HEADERS})
@@ -83,16 +87,8 @@ target_include_directories(raycaster PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_include_directories(raycaster PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/internal
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/include/actors
-    ${CMAKE_SOURCE_DIR}/include/core
-    ${CMAKE_SOURCE_DIR}/include/interface
-    ${CMAKE_SOURCE_DIR}/include/sim
-    ${CMAKE_SOURCE_DIR}/include/util
-    ${CMAKE_SOURCE_DIR}/include/render
-    ${CMAKE_SOURCE_DIR}/include/event
-    ${CMAKE_SOURCE_DIR}/include/input
     ${CMAKE_SOURCE_DIR}/packages/SDL_shadercross/include
 )
 
@@ -101,3 +97,23 @@ target_link_libraries(raycaster PUBLIC SDL3::SDL3 SDL3_image::SDL3_image SDL3_sh
 set_target_properties(raycaster PROPERTIES
     PUBLIC_HEADER "${RAYCASTER_PUBLIC_HEADERS}"
 )
+
+# Unit tests
+option(RAYCASTER_BUILD_TESTS "Build unit tests" OFF)
+
+if(RAYCASTER_BUILD_TESTS)
+    add_executable(test_map_level
+        tests/unity.c
+        tests/test_map_level.c
+        src/level/level.c
+        src/level/map_level.c
+        src/level/map_level_vtbl.c
+        src/util/general.c
+    )
+    target_include_directories(test_map_level PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/internal
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    )
+    add_test(NAME map_level COMMAND test_map_level)
+endif()
