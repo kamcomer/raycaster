@@ -5,5 +5,6 @@ packages/*
 .VSCodeCounter
 .vscode
 config.ini
+__pycache__/
 
 !packages/.gitkeep

@@ -7,12 +7,12 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
 
+#include "shaders_embed.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#define SHADER_DIR "shaders/"
 
 typedef struct {
     float x, y, z;
@@ -31,52 +31,16 @@ typedef struct {
     float u, v;
 } FloorVertex;
 
-static char *read_file(const char *path, size_t *out_size)
+static SDL_GPUShader *compile_shader_from_hlsl_source(
+    RcGPURenderer *r,
+    const char *source,
+    SDL_ShaderCross_ShaderStage stage,
+    const char *entrypoint)
 {
-    FILE *f = fopen(path, "rb");
-    if (!f)
-    {
-        fprintf(stderr, "Failed to open file: %s\n", path);
-        return NULL;
-    }
-
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char *buffer = malloc(size + 1);
-    if (!buffer)
-    {
-        fclose(f);
-        return NULL;
-    }
-
-    fread(buffer, 1, size, f);
-    buffer[size] = '\0';
-    fclose(f);
-
-    if (out_size)
-        *out_size = size;
-    return buffer;
-}
-
-static SDL_GPUShader *compile_shader_from_hlsl(RcGPURenderer *r,
-                                                const char *filename,
-                                                SDL_ShaderCross_ShaderStage stage,
-                                                const char *entrypoint)
-{
-    char path[256];
-    snprintf(path, sizeof(path), "%s%s", SHADER_DIR, filename);
-
-    size_t source_size;
-    char *source = read_file(path, &source_size);
-    if (!source)
-        return NULL;
-
     SDL_ShaderCross_HLSL_Info hlsl_info = {
         .source = source,
         .entrypoint = entrypoint,
-        .include_dir = SHADER_DIR,
+        .include_dir = NULL,
         .defines = NULL,
         .shader_stage = stage,
         .props = 0
@@ -84,7 +48,6 @@ static SDL_GPUShader *compile_shader_from_hlsl(RcGPURenderer *r,
 
     size_t spirv_size;
     void *spirv = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
-    free(source);
 
     if (!spirv)
     {
@@ -121,7 +84,7 @@ static SDL_GPUShader *compile_shader_from_hlsl(RcGPURenderer *r,
         return NULL;
     }
 
-    printf("Compiled shader: %s (stage: %d)\n", filename, stage);
+    printf("Compiled shader (stage: %d)\n", stage);
     return shader;
 }
 
@@ -140,15 +103,15 @@ static SDL_GPUSampler *create_sampler(RcGPURenderer *r, bool nearest)
 
 static bool create_pipelines(RcGPURenderer *r)
 {
-    r->wall_vertex_shader = compile_shader_from_hlsl(r, "wall.hlsl",
-                                                      SDL_SHADERCROSS_SHADERSTAGE_VERTEX,
-                                                      "vertex_main");
+    r->wall_vertex_shader = compile_shader_from_hlsl_source(r, g_wall_hlsl,
+                                                             SDL_SHADERCROSS_SHADERSTAGE_VERTEX,
+                                                             "vertex_main");
     if (!r->wall_vertex_shader)
         return false;
 
-    r->wall_fragment_shader = compile_shader_from_hlsl(r, "wall.hlsl",
-                                                        SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT,
-                                                        "fragment_main");
+    r->wall_fragment_shader = compile_shader_from_hlsl_source(r, g_wall_hlsl,
+                                                               SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT,
+                                                               "fragment_main");
     if (!r->wall_fragment_shader)
         return false;
 
@@ -195,15 +158,15 @@ static bool create_pipelines(RcGPURenderer *r)
         return false;
     }
 
-    r->sprite_vertex_shader = compile_shader_from_hlsl(r, "sprite.hlsl",
-                                                        SDL_SHADERCROSS_SHADERSTAGE_VERTEX,
-                                                        "vertex_main");
+    r->sprite_vertex_shader = compile_shader_from_hlsl_source(r, g_sprite_hlsl,
+                                                               SDL_SHADERCROSS_SHADERSTAGE_VERTEX,
+                                                               "vertex_main");
     if (!r->sprite_vertex_shader)
         return false;
 
-    r->sprite_fragment_shader = compile_shader_from_hlsl(r, "sprite.hlsl",
-                                                         SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT,
-                                                         "fragment_main");
+    r->sprite_fragment_shader = compile_shader_from_hlsl_source(r, g_sprite_hlsl,
+                                                                 SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT,
+                                                                 "fragment_main");
     if (!r->sprite_fragment_shader)
         return false;
 
@@ -218,15 +181,15 @@ static bool create_pipelines(RcGPURenderer *r)
         return false;
     }
 
-    r->floor_vertex_shader = compile_shader_from_hlsl(r, "floor.hlsl",
-                                                     SDL_SHADERCROSS_SHADERSTAGE_VERTEX,
-                                                     "vertex_main");
+    r->floor_vertex_shader = compile_shader_from_hlsl_source(r, g_floor_hlsl,
+                                                              SDL_SHADERCROSS_SHADERSTAGE_VERTEX,
+                                                              "vertex_main");
     if (!r->floor_vertex_shader)
         return false;
 
-    r->floor_fragment_shader = compile_shader_from_hlsl(r, "floor.hlsl",
-                                                         SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT,
-                                                         "fragment_main");
+    r->floor_fragment_shader = compile_shader_from_hlsl_source(r, g_floor_hlsl,
+                                                                SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT,
+                                                                "fragment_main");
     if (!r->floor_fragment_shader)
         return false;
 

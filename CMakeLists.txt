@@ -15,17 +15,8 @@ endif()
 # Add the raycaster library
 add_subdirectory(libraycaster)
 
-# Add SDL (needed by both main and game)
-set(SDL3IMAGE_VENDORED OFF)
-add_subdirectory(packages/SDL EXCLUDE_FROM_ALL)
-add_subdirectory(packages/SDL_image EXCLUDE_FROM_ALL)
-add_subdirectory(packages/SDL_shadercross EXCLUDE_FROM_ALL)
-
-# Add shader directory
-set(SHADERS_DIR "${CMAKE_SOURCE_DIR}/shaders")
-
 # Add game
-add_subdirectory(game)
+add_subdirectory(demo_game)
 
 # Define source files explicitly
 set(SOURCES
@@ -60,7 +51,6 @@ set(INCLUDES
   ${CMAKE_SOURCE_DIR}/include/render
   ${CMAKE_SOURCE_DIR}/include/event
   ${CMAKE_SOURCE_DIR}/include/input
-  ${CMAKE_SOURCE_DIR}/shaders
   ${CMAKE_SOURCE_DIR}/libraycaster/include
 )
 
