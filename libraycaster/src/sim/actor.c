@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-void rc_actor_update(RcActor *a, RcWorld *world, RcInput *input, float dt)
+void rc_actor_update(RcActor *a, RcLevel *world, RcInput *input, float dt)
 {
     if (a && a->vtbl && a->vtbl->update)
         a->vtbl->update(a, world, input, dt);

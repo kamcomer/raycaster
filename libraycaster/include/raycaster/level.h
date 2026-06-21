@@ -1,45 +1,25 @@
-#ifndef RAYCASTER_WORLD_H
-#define RAYCASTER_WORLD_H
+#ifndef RAYCASTER_LEVEL_H
+#define RAYCASTER_LEVEL_H
 
-#include "types.h"
 #include "camera.h"
+#include "types.h"
 
-typedef struct RcWorld RcWorld;
+typedef struct RcLevel RcLevel;
 
-typedef struct RcSprite
-{
-    RcVector pos;
-    int texture_id;
-    bool is_dynamic;
+typedef struct RcSprite {
+  RcVector pos;
+  int texture_id;
+  bool is_dynamic;
 } RcSprite;
 
-typedef struct RcWorldVtbl
-{
-    int (*width)(RcWorld *w);
-    int (*height)(RcWorld *w);
-    int (*wall)(RcWorld *w, int x, int y);
-    int (*floor)(RcWorld *w, int x, int y);
-    int (*ceil)(RcWorld *w, int x, int y);
-    int (*unit_size)(RcWorld *w);
-    void (*sprites)(RcWorld *w, RcSprite **out, int *count);
-    void (*update)(RcWorld *w, float dt);
-    void (*destroy)(RcWorld *w);
-} RcWorldVtbl;
+int rc_level_get_width(RcLevel *w);
+int rc_level_get_height(RcLevel *w);
+int rc_level_get_wall(RcLevel *w, int x, int y);
+int rc_level_get_floor(RcLevel *w, int x, int y);
+int rc_level_get_ceil(RcLevel *w, int x, int y);
+int rc_level_get_unit_size(RcLevel *w);
+void rc_level_get_sprites(RcLevel *w, RcSprite **out, int *count);
+void rc_level_update(RcLevel *w, float dt);
+void rc_level_destroy(RcLevel *w);
 
-struct RcWorld
-{
-    const RcWorldVtbl *vtbl;
-    void *impl;
-};
-
-int rc_world_get_width(RcWorld *w);
-int rc_world_get_height(RcWorld *w);
-int rc_world_get_wall(RcWorld *w, int x, int y);
-int rc_world_get_floor(RcWorld *w, int x, int y);
-int rc_world_get_ceil(RcWorld *w, int x, int y);
-int rc_world_get_unit_size(RcWorld *w);
-void rc_world_get_sprites(RcWorld *w, RcSprite **out, int *count);
-void rc_world_update(RcWorld *w, float dt);
-void rc_world_destroy(RcWorld *w);
-
-#endif // RAYCASTER_WORLD_H
+#endif // RAYCASTER_LEVEL_H

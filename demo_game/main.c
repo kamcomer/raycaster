@@ -32,14 +32,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    RcWorld *world = rc_world_load_from_file("assets/maps/map.txt");
+    RcLevel *world = rc_level_load_from_file("assets/maps/map.txt");
     if (!world) {
-        fprintf(stderr, "Failed to load world\n");
+        fprintf(stderr, "Failed to load level\n");
         rc_engine_destroy(engine);
         return 1;
     }
 
-    rc_engine_load_world(engine, world);
+    rc_engine_load_level(engine, world);
 
     printf("Starting game loop...\n");
     printf("Controls: W/S/A/D to move, Left/Right arrows to rotate, ESC to quit\n");

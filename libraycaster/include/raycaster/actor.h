@@ -2,14 +2,14 @@
 #define RAYCASTER_ACTOR_H
 
 #include "types.h"
-#include "world.h"
+#include "level.h"
 #include "input.h"
 
 typedef struct RcActor RcActor;
 
 typedef struct RcActorVtbl
 {
-    void (*update)(RcActor *a, RcWorld *world, RcInput *input, float dt);
+    void (*update)(RcActor *a, RcLevel *world, RcInput *input, float dt);
     RcVector (*get_position)(RcActor *a);
     RcVector (*get_direction)(RcActor *a);
     int (*get_texture)(RcActor *a);
@@ -27,7 +27,7 @@ struct RcActor
     void *impl;
 };
 
-void rc_actor_update(RcActor *a, RcWorld *world, RcInput *input, float dt);
+void rc_actor_update(RcActor *a, RcLevel *world, RcInput *input, float dt);
 RcVector rc_actor_get_position(RcActor *a);
 RcVector rc_actor_get_direction(RcActor *a);
 int rc_actor_get_texture(RcActor *a);

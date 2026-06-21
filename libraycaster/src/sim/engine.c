@@ -12,7 +12,7 @@
 
 struct RcEngine {
   RcConfig config;
-  RcWorld *world;
+  RcLevel *level;
   RcCamera *camera;
   RcInput *input;
   void *game_state;
@@ -289,8 +289,8 @@ void rc_engine_destroy(RcEngine *e)
   if (e->renderer)
     SDL_DestroyRenderer(e->renderer);
 
-  if (e->world)
-    rc_world_destroy(e->world);
+  if (e->level)
+    rc_level_destroy(e->level);
 
   if (e->camera)
     rc_camera_destroy(e->camera);
@@ -324,25 +324,25 @@ void rc_engine_destroy(RcEngine *e)
   free(e);
 }
 
-int rc_engine_load_world(RcEngine *e, RcWorld *world)
+int rc_engine_load_level(RcEngine *e, RcLevel *world)
 {
   if (!e || !world)
     return -1;
 
-  if (e->world)
-    rc_world_destroy(e->world);
+  if (e->level)
+    rc_level_destroy(e->level);
 
-  e->world = world;
+  e->level = world;
   return 0;
 }
 
-void rc_engine_set_world(RcEngine *e, RcWorld *world)
+void rc_engine_set_level(RcEngine *e, RcLevel *world)
 {
   if (e)
-    e->world = world;
+    e->level = world;
 }
 
-RcWorld *rc_engine_get_world(RcEngine *e) { return e ? e->world : NULL; }
+RcLevel *rc_engine_get_level(RcEngine *e) { return e ? e->level : NULL; }
 
 void rc_engine_set_camera(RcEngine *e, RcCamera *cam)
 {
@@ -391,7 +391,7 @@ static void render(RcEngine *e);
 
 static void render(RcEngine *e)
 {
-  if (!e || !e->renderer || !e->camera || !e->world)
+  if (!e || !e->renderer || !e->camera || !e->level)
     return;
 
   int w = e->config.width;
@@ -485,14 +485,14 @@ static void render_floor_ceiling(RcEngine *e)
 static void render_sprites(RcEngine *e, double *z_buffer)
 {
   RcCamera *cam = e->camera;
-  RcWorld *world = e->world;
+  RcLevel *world = e->level;
   SDL_Renderer *r = e->renderer;
   int w = e->config.width;
   int h = e->config.height;
 
   RcSprite *sprites = NULL;
   int sprite_count = 0;
-  rc_world_get_sprites(world, &sprites, &sprite_count);
+  rc_level_get_sprites(world, &sprites, &sprite_count);
 
   if (sprite_count == 0 || !sprites)
     return;
@@ -589,7 +589,7 @@ static void render_sprites(RcEngine *e, double *z_buffer)
 static void render_walls(RcEngine *e, double *z_buffer)
 {
   RcCamera *cam = e->camera;
-  RcWorld *world = e->world;
+  RcLevel *world = e->level;
   SDL_Renderer *r = e->renderer;
   int w = e->config.width;
   int h = e->config.height;
@@ -647,7 +647,7 @@ static void render_walls(RcEngine *e, double *z_buffer)
         side = 1;
       }
 
-      if (rc_world_get_wall(world, map_x, map_y) > 0)
+      if (rc_level_get_wall(world, map_x, map_y) > 0)
         hit = 1;
     }
 
@@ -670,7 +670,7 @@ static void render_walls(RcEngine *e, double *z_buffer)
     if (draw_end >= h)
       draw_end = h - 1;
 
-    int wall_type = rc_world_get_wall(world, map_x, map_y);
+    int wall_type = rc_level_get_wall(world, map_x, map_y);
     int tex_num = wall_type - 1;
 
     double wall_x;
@@ -727,7 +727,7 @@ static void update(RcEngine *e)
 
   RcInput *in = e->input;
   RcCamera *cam = e->camera;
-  RcWorld *world = e->world;
+  RcLevel *world = e->level;
 
   if (!in || !cam || !world)
     return;
@@ -738,7 +738,7 @@ static void update(RcEngine *e)
   if (rc_input_down(in, RC_KEY_W)) {
     double new_x = cam->pos.x + cam->dir.x * move_speed;
     double new_y = cam->pos.y + cam->dir.y * move_speed;
-    int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;
@@ -747,7 +747,7 @@ static void update(RcEngine *e)
   if (rc_input_down(in, RC_KEY_S)) {
     double new_x = cam->pos.x - cam->dir.x * move_speed;
     double new_y = cam->pos.y - cam->dir.y * move_speed;
-    int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;
@@ -756,7 +756,7 @@ static void update(RcEngine *e)
   if (rc_input_down(in, RC_KEY_A)) {
     double new_x = cam->pos.x - cam->plane.x * move_speed;
     double new_y = cam->pos.y - cam->plane.y * move_speed;
-    int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;
@@ -765,7 +765,7 @@ static void update(RcEngine *e)
   if (rc_input_down(in, RC_KEY_D)) {
     double new_x = cam->pos.x + cam->plane.x * move_speed;
     double new_y = cam->pos.y + cam->plane.y * move_speed;
-    int wall = rc_world_get_wall(world, (int)new_x, (int)new_y);
+    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;

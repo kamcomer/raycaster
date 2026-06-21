@@ -4,7 +4,7 @@
 #include "types.h"
 #include "input.h"
 #include "camera.h"
-#include "world.h"
+#include "level.h"
 #include "actor.h"
 
 #ifdef __cplusplus
@@ -24,22 +24,15 @@ typedef struct RcConfig
     int strip_count;
 } RcConfig;
 
-typedef struct RcLevel
-{
-    char name[64];
-    RcVector player_start;
-    char map_file[256];
-} RcLevel;
-
 typedef void (*RcUpdateFn)(void *game_state, RcEngine *engine, float dt);
 typedef void (*RcRenderFn)(void *game_state, RcEngine *engine);
 
 RcEngine *rc_engine_create(RcConfig config);
 void rc_engine_destroy(RcEngine *e);
 
-int rc_engine_load_world(RcEngine *e, RcWorld *world);
-void rc_engine_set_world(RcEngine *e, RcWorld *world);
-RcWorld *rc_engine_get_world(RcEngine *e);
+int rc_engine_load_level(RcEngine *e, RcLevel *world);
+void rc_engine_set_level(RcEngine *e, RcLevel *world);
+RcLevel *rc_engine_get_level(RcEngine *e);
 
 void rc_engine_set_camera(RcEngine *e, RcCamera *cam);
 RcCamera *rc_engine_get_camera(RcEngine *e);
@@ -58,8 +51,8 @@ bool rc_engine_is_running(RcEngine *e);
 
 float rc_engine_get_delta_time(RcEngine *e);
 
-RcWorld *rc_world_load_from_file(const char *map_path);
-RcWorld *rc_world_create_empty(int width, int height);
+RcLevel *rc_level_load_from_file(const char *map_path);
+RcLevel *rc_level_create_empty(int width, int height);
 
 void rc_config_set_defaults(RcConfig *cfg);
 
