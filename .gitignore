@@ -7,5 +7,5 @@ packages/*
 config.ini
 __pycache__/
 .DS_Store
- 
- !packages/.gitkeep
+!packages/.gitkeep
+test_map_*
