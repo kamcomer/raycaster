@@ -12,6 +12,9 @@ typedef struct RcSprite {
   bool is_dynamic;
 } RcSprite;
 
+RcLevel *rc_level_load_from_file(const char *file_path);
+RcLevel *rc_level_create_empty(int width, int height);
+
 int rc_level_get_width(RcLevel *w);
 int rc_level_get_height(RcLevel *w);
 int rc_level_get_wall(RcLevel *w, int x, int y);

@@ -57,7 +57,7 @@ void rc_config_set_defaults(RcConfig *cfg)
 
 static int init_sdl(void)
 {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
     fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
     return -1;
   }

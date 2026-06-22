@@ -534,7 +534,7 @@ int rc_gpu_renderer_set_sprite_texture(RcGPURenderer *r, int index, uint32_t *pi
   return 0;
 }
 
-static void ensure_buffers(RcGPURenderer *r, int screen_width, int screen_height)
+static void ensure_buffers(RcGPURenderer *r, uint32_t screen_width, uint32_t screen_height)
 {
   size_t wall_vertex_size = MAX_WALL_STRIPS * 4 * sizeof(WallVertex);
   size_t wall_index_size = MAX_WALL_STRIPS * 6 * sizeof(uint16_t);

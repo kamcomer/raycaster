@@ -1,27 +1,22 @@
 #ifndef RAYCASTER_H
 #define RAYCASTER_H
 
-#include "types.h"
-#include "input.h"
-#include "camera.h"
-#include "level.h"
 #include "actor.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "camera.h"
+#include "input.h"
+#include "level.h"
+#include "types.h"
 
 typedef struct RcEngine RcEngine;
 
-typedef struct RcConfig
-{
-    const char *title;
-    int width;
-    int height;
-    int target_fps;
-    bool show_fps;
-    const char *map_file;
-    int strip_count;
+typedef struct RcConfig {
+  const char *title;
+  int width;
+  int height;
+  int target_fps;
+  bool show_fps;
+  const char *map_file;
+  int strip_count;
 } RcConfig;
 
 typedef void (*RcUpdateFn)(void *game_state, RcEngine *engine, float dt);
@@ -51,13 +46,6 @@ bool rc_engine_is_running(RcEngine *e);
 
 float rc_engine_get_delta_time(RcEngine *e);
 
-RcLevel *rc_level_load_from_file(const char *map_path);
-RcLevel *rc_level_create_empty(int width, int height);
-
 void rc_config_set_defaults(RcConfig *cfg);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // RAYCASTER_H
