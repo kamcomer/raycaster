@@ -195,7 +195,7 @@ RcEngine *rc_engine_create(RcConfig config)
   rc_camera_set_position(e->camera, 3.5, 3.5);
   rc_camera_set_direction(e->camera, -1.0, 0.0);
 
-  e->input = rc_input_create();
+  e->input = rc_input_create(config.input_backend);
 
   e->textures = create_textures();
 
@@ -735,7 +735,7 @@ static void update(RcEngine *e)
   float move_speed = 0.05f;
   float rot_speed = 0.03f;
 
-  if (rc_input_down(in, RC_KEY_W)) {
+  if (rc_input_get_key_down(in, RC_KEY_W)) {
     double new_x = cam->pos.x + cam->dir.x * move_speed;
     double new_y = cam->pos.y + cam->dir.y * move_speed;
     int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
@@ -744,7 +744,7 @@ static void update(RcEngine *e)
       cam->pos.y = new_y;
     }
   }
-  if (rc_input_down(in, RC_KEY_S)) {
+  if (rc_input_get_key_down(in, RC_KEY_S)) {
     double new_x = cam->pos.x - cam->dir.x * move_speed;
     double new_y = cam->pos.y - cam->dir.y * move_speed;
     int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
@@ -753,7 +753,7 @@ static void update(RcEngine *e)
       cam->pos.y = new_y;
     }
   }
-  if (rc_input_down(in, RC_KEY_A)) {
+  if (rc_input_get_key_down(in, RC_KEY_A)) {
     double new_x = cam->pos.x - cam->plane.x * move_speed;
     double new_y = cam->pos.y - cam->plane.y * move_speed;
     int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
@@ -762,7 +762,7 @@ static void update(RcEngine *e)
       cam->pos.y = new_y;
     }
   }
-  if (rc_input_down(in, RC_KEY_D)) {
+  if (rc_input_get_key_down(in, RC_KEY_D)) {
     double new_x = cam->pos.x + cam->plane.x * move_speed;
     double new_y = cam->pos.y + cam->plane.y * move_speed;
     int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
@@ -771,13 +771,13 @@ static void update(RcEngine *e)
       cam->pos.y = new_y;
     }
   }
-  if (rc_input_down(in, RC_KEY_LEFT)) {
+  if (rc_input_get_key_down(in, RC_KEY_LEFT)) {
     rc_camera_rotate(cam, -rot_speed);
   }
-  if (rc_input_down(in, RC_KEY_RIGHT)) {
+  if (rc_input_get_key_down(in, RC_KEY_RIGHT)) {
     rc_camera_rotate(cam, rot_speed);
   }
-  if (rc_input_down(in, RC_KEY_ESCAPE)) {
+  if (rc_input_get_key_down(in, RC_KEY_ESCAPE)) {
     e->running = false;
   }
 }

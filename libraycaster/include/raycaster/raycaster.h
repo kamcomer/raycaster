@@ -17,6 +17,7 @@ typedef struct RcConfig {
   bool show_fps;
   const char *map_file;
   int strip_count;
+  RcInputBackend input_backend;
 } RcConfig;
 
 typedef void (*RcUpdateFn)(void *game_state, RcEngine *engine, float dt);

@@ -56,6 +56,7 @@ set(RAYCASTER_SOURCES
     src/util/general.c
     src/level/level.c
     src/level/map_level.c
+    src/input/input.c
     src/sim/actor.c
     src/sim/camera.c
     src/sim/engine.c
@@ -86,7 +87,7 @@ target_include_directories(raycaster PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_include_directories(raycaster PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_SOURCE_DIR}/packages/SDL_shadercross/include
 )
@@ -110,7 +111,7 @@ if(RAYCASTER_BUILD_TESTS)
         src/util/general.c
     )
     target_include_directories(test_map_level PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/internal
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
     )
