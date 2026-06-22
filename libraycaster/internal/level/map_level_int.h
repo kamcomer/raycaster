@@ -14,8 +14,12 @@ typedef enum {
   MAP_SECTION_CEIL,
   MAP_SECTION_FLOOR,
   MAP_SECTION_TEXTURES,
+  MAP_SECTION_SPRITE_TYPES,
   MAP_SECTION_SPRITES
 } MapSection;
+
+#define MAX_SPRITE_TYPES 16
+#define MAX_SPRITE_TYPE_KEY_LEN 64
 
 typedef struct {
   uint8_t **walls;
@@ -28,6 +32,9 @@ typedef struct {
   int sprite_count;
   char *texture_paths[MAX_TEXTURE_PATHS];
   int texture_count;
+  char sprite_type_keys[MAX_SPRITE_TYPES][MAX_SPRITE_TYPE_KEY_LEN];
+  char *sprite_type_paths[MAX_SPRITE_TYPES];
+  int sprite_type_count;
 } MapLevelData;
 
 extern RcLevelVtbl maplevel_vtbl;

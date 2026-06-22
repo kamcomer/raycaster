@@ -1,5 +1,5 @@
 [MAP]
-24 24 
+24 24
 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
 7 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
@@ -22,8 +22,10 @@
 7 2 0 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
-4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+[CEIL]
 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
@@ -49,7 +51,7 @@
 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
 
-3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+[FLOOR]
 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
@@ -76,17 +78,21 @@
 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
 
 [TEXTURES]
-assets/textures/bluestone.png
-assets/textures/colorstone.png
-assets/textures/eagle.png
-assets/textures/greystone.png
-assets/textures/mossy.png
-assets/textures/purplestone.png
-assets/textures/redbrick.png
-assets/textures/wood.png
+1: assets/textures/bluestone.png
+2: assets/textures/colorstone.png
+3: assets/textures/eagle.png
+4: assets/textures/greystone.png
+5: assets/textures/mossy.png
+6: assets/textures/purplestone.png
+7: assets/textures/redbrick.png
+8: assets/textures/wood.png
+
+[SPRITE_TYPES]
+barrel: assets/sprites/barrel.png
+pillar: assets/sprites/pillar.png
+greenlight: assets/sprites/greenlight.png
 
 [SPRITES]
-assets/textures/pillar.png
-assets/textures/greenlight.png
-assets/textures/barrel.png
-
+12 11 barrel
+13.982271634615385 11.952223557692308 pillar
+10 12 greenlight

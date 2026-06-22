@@ -74,6 +74,8 @@ static void destroy_data(MapLevelData *data)
   free(data->sprites);
   for (int i = 0; i < data->texture_count; i++)
     free(data->texture_paths[i]);
+  for (int i = 0; i < data->sprite_type_count; i++)
+    free(data->sprite_type_paths[i]);
   free(data);
 }
 
@@ -112,6 +114,10 @@ RcLevel *rc_level_load_from_file(const char *file_path)
     }
     if (strcmp(buf, "[TEXTURES]") == 0) {
       section = MAP_SECTION_TEXTURES;
+      continue;
+    }
+    if (strcmp(buf, "[SPRITE_TYPES]") == 0) {
+      section = MAP_SECTION_SPRITE_TYPES;
       continue;
     }
     if (strcmp(buf, "[SPRITES]") == 0) {
@@ -181,18 +187,52 @@ RcLevel *rc_level_load_from_file(const char *file_path)
       }
       section = MAP_SECTION_NONE;
       break;
-    case MAP_SECTION_TEXTURES:
+    case MAP_SECTION_TEXTURES: {
       if (data->texture_count < MAX_TEXTURE_PATHS) {
-        data->texture_paths[data->texture_count] = malloc(strlen(buf) + 1);
+        char *path = buf;
+        char *colon = strchr(buf, ':');
+        if (colon != NULL && colon[1] == ' ')
+          path = colon + 2;
+        data->texture_paths[data->texture_count] = malloc(strlen(path) + 1);
         if (data->texture_paths[data->texture_count]) {
-          strcpy(data->texture_paths[data->texture_count], buf);
+          strcpy(data->texture_paths[data->texture_count], path);
           data->texture_count++;
         }
       }
       break;
+    }
+    case MAP_SECTION_SPRITE_TYPES: {
+      if (data->sprite_type_count < MAX_SPRITE_TYPES) {
+        char *colon = strchr(buf, ':');
+        if (colon != NULL && colon[1] == ' ') {
+          int key_len = colon - buf;
+          if (key_len >= MAX_SPRITE_TYPE_KEY_LEN)
+            key_len = MAX_SPRITE_TYPE_KEY_LEN - 1;
+          strncpy(data->sprite_type_keys[data->sprite_type_count], buf, key_len);
+          data->sprite_type_keys[data->sprite_type_count][key_len] = '\0';
+          const char *path = colon + 2;
+          data->sprite_type_paths[data->sprite_type_count] = malloc(strlen(path) + 1);
+          if (data->sprite_type_paths[data->sprite_type_count]) {
+            strcpy(data->sprite_type_paths[data->sprite_type_count], path);
+            data->sprite_type_count++;
+          }
+        }
+      }
+      break;
+    }
     case MAP_SECTION_SPRITES: {
       RcSprite s;
-      if (sscanf(buf, "%lf %lf %d", &s.pos.x, &s.pos.y, &s.texture_id) == 3) {
+      char key[MAX_SPRITE_TYPE_KEY_LEN];
+      if (sscanf(buf, "%lf %lf %63s", &s.pos.x, &s.pos.y, key) == 3) {
+        s.texture_id = -1;
+        for (int i = 0; i < data->sprite_type_count; i++) {
+          if (strcmp(data->sprite_type_keys[i], key) == 0) {
+            s.texture_id = i;
+            break;
+          }
+        }
+        if (s.texture_id < 0)
+          s.texture_id = 0;
         s.is_dynamic = false;
         s.pos.mag = 0;
         s.pos.angle = 0;
@@ -338,6 +378,8 @@ static void maplevel_destroy(RcLevel *w)
   free(data->floor);
   for (int i = 0; i < data->texture_count; i++)
     free(data->texture_paths[i]);
+  for (int i = 0; i < data->sprite_type_count; i++)
+    free(data->sprite_type_paths[i]);
   free(data->sprites);
   free(data);
   free(w);

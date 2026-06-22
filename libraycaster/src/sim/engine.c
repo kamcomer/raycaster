@@ -122,9 +122,9 @@ static RcTextureData *create_textures(void)
   uint32_t *t5 = load_image_data("assets/textures/purplestone.png", &width, &height);
   uint32_t *t6 = load_image_data("assets/textures/redbrick.png", &width, &height);
   uint32_t *t7 = load_image_data("assets/textures/wood.png", &width, &height);
-  uint32_t *t8 = load_image_data("assets/textures/barrel.png", &width, &height);
-  uint32_t *t9 = load_image_data("assets/textures/pillar.png", &width, &height);
-  uint32_t *t10 = load_image_data("assets/textures/greenlight.png", &width, &height);
+  uint32_t *t8 = load_image_data("assets/sprites/barrel.png", &width, &height);
+  uint32_t *t9 = load_image_data("assets/sprites/pillar.png", &width, &height);
+  uint32_t *t10 = load_image_data("assets/sprites/greenlight.png", &width, &height);
 
   for (int i = 0; i < 11; i++) {
     textures[i].pixels = malloc(sizeof(uint32_t) * (RC_TEXTURE_WIDTH * RC_TEXTURE_HEIGHT));
