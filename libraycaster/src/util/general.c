@@ -1,4 +1,4 @@
-#include "util/general.h"
+#include "internal/util/general.h"
 #include <ctype.h>
 #include <string.h>
 

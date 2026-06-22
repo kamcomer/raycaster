@@ -1,4 +1,4 @@
-#include "level/level_int.h"
+#include "internal/level/level_int.h"
 
 int rc_level_get_width(RcLevel *w) { return w->vtbl->width(w); }
 

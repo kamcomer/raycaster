@@ -1,8 +1,8 @@
 #ifndef MAP_LEVEL_INT_H
 #define MAP_LEVEL_INT_H
 
+#include "internal/level/level_int.h"
 #include "raycaster/level.h"
-#include "level_int.h"
 #include <stdint.h>
 
 #define DEFAULT_MAP_UNIT_SIZE 20

@@ -56,7 +56,6 @@ set(RAYCASTER_SOURCES
     src/util/general.c
     src/level/level.c
     src/level/map_level.c
-    src/level/map_level_vtbl.c
     src/sim/actor.c
     src/sim/camera.c
     src/sim/engine.c
@@ -111,7 +110,7 @@ if(RAYCASTER_BUILD_TESTS)
         src/util/general.c
     )
     target_include_directories(test_map_level PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
     )
