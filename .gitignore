@@ -9,3 +9,5 @@ __pycache__/
 .DS_Store
 !packages/.gitkeep
 test_map_*
+node_modules/
+demo_game/game

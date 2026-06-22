@@ -15,6 +15,9 @@ endif()
 # Add the raycaster library
 add_subdirectory(libraycaster)
 
+# Place game binary in the source tree alongside assets
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/demo_game)
+
 # Add game
 add_subdirectory(demo_game)
 
