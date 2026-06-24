@@ -5,59 +5,59 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-static SDL_Keycode key_to_sdl(RcKey key)
-{
-  switch (key) {
-  case RC_KEY_W:
-    return SDLK_W;
-  case RC_KEY_S:
-    return SDLK_S;
-  case RC_KEY_A:
-    return SDLK_A;
-  case RC_KEY_D:
-    return SDLK_D;
-  case RC_KEY_UP:
-    return SDLK_UP;
-  case RC_KEY_DOWN:
-    return SDLK_DOWN;
-  case RC_KEY_LEFT:
-    return SDLK_LEFT;
-  case RC_KEY_RIGHT:
-    return SDLK_RIGHT;
-  case RC_KEY_SPACE:
-    return SDLK_SPACE;
-  case RC_KEY_ESCAPE:
-    return SDLK_ESCAPE;
-  case RC_KEY_ENTER:
-    return SDLK_RETURN;
-  case RC_KEY_SHIFT:
-    return SDLK_LSHIFT;
-  case RC_KEY_CTRL:
-    return SDLK_LCTRL;
-  case RC_KEY_0:
-    return SDLK_0;
-  case RC_KEY_1:
-    return SDLK_1;
-  case RC_KEY_2:
-    return SDLK_2;
-  case RC_KEY_3:
-    return SDLK_3;
-  case RC_KEY_4:
-    return SDLK_4;
-  case RC_KEY_5:
-    return SDLK_5;
-  case RC_KEY_6:
-    return SDLK_6;
-  case RC_KEY_7:
-    return SDLK_7;
-  case RC_KEY_8:
-    return SDLK_8;
-  case RC_KEY_9:
-    return SDLK_9;
-  default:
-    return SDLK_UNKNOWN;
-  }
-}
+// static SDL_Keycode key_to_sdl(RcKey key)
+// {
+//   switch (key) {
+//   case RC_KEY_W:
+//     return SDLK_W;
+//   case RC_KEY_S:
+//     return SDLK_S;
+//   case RC_KEY_A:
+//     return SDLK_A;
+//   case RC_KEY_D:
+//     return SDLK_D;
+//   case RC_KEY_UP:
+//     return SDLK_UP;
+//   case RC_KEY_DOWN:
+//     return SDLK_DOWN;
+//   case RC_KEY_LEFT:
+//     return SDLK_LEFT;
+//   case RC_KEY_RIGHT:
+//     return SDLK_RIGHT;
+//   case RC_KEY_SPACE:
+//     return SDLK_SPACE;
+//   case RC_KEY_ESCAPE:
+//     return SDLK_ESCAPE;
+//   case RC_KEY_ENTER:
+//     return SDLK_RETURN;
+//   case RC_KEY_SHIFT:
+//     return SDLK_LSHIFT;
+//   case RC_KEY_CTRL:
+//     return SDLK_LCTRL;
+//   case RC_KEY_0:
+//     return SDLK_0;
+//   case RC_KEY_1:
+//     return SDLK_1;
+//   case RC_KEY_2:
+//     return SDLK_2;
+//   case RC_KEY_3:
+//     return SDLK_3;
+//   case RC_KEY_4:
+//     return SDLK_4;
+//   case RC_KEY_5:
+//     return SDLK_5;
+//   case RC_KEY_6:
+//     return SDLK_6;
+//   case RC_KEY_7:
+//     return SDLK_7;
+//   case RC_KEY_8:
+//     return SDLK_8;
+//   case RC_KEY_9:
+//     return SDLK_9;
+//   default:
+//     return SDLK_UNKNOWN;
+//   }
+// }
 
 static SDL_Scancode key_to_scancode(RcKey key)
 {
