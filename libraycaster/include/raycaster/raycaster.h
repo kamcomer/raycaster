@@ -3,27 +3,16 @@
 
 #include "actor.h"
 #include "camera.h"
+#include "engine.h"
 #include "input.h"
 #include "level.h"
+#include "renderer.h"
 #include "types.h"
-
-typedef struct RcEngine RcEngine;
-
-typedef struct RcConfig {
-  const char *title;
-  int width;
-  int height;
-  int target_fps;
-  bool show_fps;
-  const char *map_file;
-  int strip_count;
-  RcInputBackend input_backend;
-} RcConfig;
 
 typedef void (*RcUpdateFn)(void *game_state, RcEngine *engine, float dt);
 typedef void (*RcRenderFn)(void *game_state, RcEngine *engine);
 
-RcEngine *rc_engine_create(RcConfig config);
+RcEngine *rc_engine_create(RcEngineConfig config);
 void rc_engine_destroy(RcEngine *e);
 
 int rc_engine_load_level(RcEngine *e, RcLevel *world);
@@ -47,6 +36,6 @@ bool rc_engine_is_running(RcEngine *e);
 
 float rc_engine_get_delta_time(RcEngine *e);
 
-void rc_config_set_defaults(RcConfig *cfg);
+void rc_engine_config_set_defaults(RcEngineConfig *cfg);
 
 #endif // RAYCASTER_H

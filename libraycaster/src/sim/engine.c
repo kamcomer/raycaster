@@ -1,4 +1,6 @@
-#include "raycaster/raycaster.h"
+#include "raycaster/engine.h"
+#include "internal/engine_int.h"
+#include "internal/renderer/renderer_int.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -10,39 +12,7 @@
 
 #define FIXED_DT 0.0166667f
 
-struct RcEngine {
-  RcConfig config;
-  RcLevel *level;
-  RcCamera *camera;
-  RcInput *input;
-  void *game_state;
-  RcUpdateFn update_fn;
-  RcRenderFn render_fn;
-  bool running;
-  float delta_time;
-
-  SDL_Window *window;
-  SDL_Renderer *renderer;
-  uint32_t last_time;
-  uint32_t current_time;
-  float accumulator;
-
-  int frame_count;
-  float fps;
-  uint32_t fps_timer;
-
-  RcTextureData *textures;
-
-  SDL_Texture *wall_texture;
-  SDL_Texture *wall_textures[11];
-  SDL_Texture *floor_ceil_texture;
-  SDL_Texture *sprite_texture;
-  SDL_Texture *floor_texture;
-  SDL_Texture *ceiling_texture;
-  SDL_Texture *sprite_textures[3];
-};
-
-void rc_config_set_defaults(RcConfig *cfg)
+void rc_engine_config_set_defaults(RcEngineConfig *cfg)
 {
   if (!cfg)
     return;
@@ -53,6 +23,7 @@ void rc_config_set_defaults(RcConfig *cfg)
   cfg->show_fps = false;
   cfg->map_file = NULL;
   cfg->strip_count = 4;
+  cfg->use_gpu = false;
 }
 
 static int init_sdl(void)
@@ -156,7 +127,7 @@ static void free_textures(RcTextureData *textures)
   free(textures);
 }
 
-RcEngine *rc_engine_create(RcConfig config)
+RcEngine *rc_engine_create(RcEngineConfig config)
 {
   if (init_sdl() != 0)
     return NULL;
@@ -182,13 +153,107 @@ RcEngine *rc_engine_create(RcConfig config)
 
   SDL_SetWindowPosition(e->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-  e->renderer = SDL_CreateRenderer(e->window, NULL);
-  if (!e->renderer) {
-    fprintf(stderr, "Failed to create renderer: %s\n", SDL_GetError());
+  e->textures = create_textures();
+  if (!e->textures) {
+    fprintf(stderr, "Failed to create textures\n");
     SDL_DestroyWindow(e->window);
     free(e);
     shutdown_sdl();
     return NULL;
+  }
+
+  // if (config.use_gpu) {
+  //   e->gpu = rc_gpu_renderer_create(e->window);
+  //   if (!e->gpu) {
+  //     fprintf(stderr, "Failed to create GPU renderer, falling back to CPU\n");
+  //     e->use_gpu = false;
+  //   } else {
+  //     e->use_gpu = true;
+  //     uint32_t *tex_ptrs[11];
+  //     for (int i = 0; i < 11; i++)
+  //       tex_ptrs[i] = e->textures[i].pixels;
+  //     rc_gpu_renderer_upload_textures(e->gpu, tex_ptrs, 11);
+  //     rc_gpu_renderer_set_floor_textures(e->gpu, e->textures[7].pixels, e->textures[3].pixels);
+  //     for (int i = 0; i < 3; i++)
+  //       rc_gpu_renderer_set_sprite_texture(e->gpu, i, e->textures[8 + i].pixels);
+  //   }
+  // }
+
+  if (!e->use_gpu) {
+    e->renderer = rc_renderer_create(e->window, e->use_gpu);
+    // e->renderer = SDL_CreateRenderer(e->window, NULL);
+    if (!e->renderer) {
+      fprintf(stderr, "Failed to create renderer: %s\n", SDL_GetError());
+      SDL_DestroyWindow(e->window);
+      free_textures(e->textures);
+      free(e);
+      shutdown_sdl();
+      return NULL;
+    }
+
+    SDL_Renderer *sdl_renderer = rc_renderer_get_renderer(e->renderer);
+
+    for (int i = 0; i < 11; i++) {
+      e->wall_textures[i] =
+          SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
+                            RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
+      if (!e->wall_textures[i]) {
+        fprintf(stderr, "Failed to create wall texture %d\n", i);
+      } else {
+        SDL_SetTextureBlendMode(e->wall_textures[i], SDL_BLENDMODE_NONE);
+        SDL_UpdateTexture(e->wall_textures[i], NULL, e->textures[i].pixels, RC_TEXTURE_WIDTH * 4);
+      }
+    }
+
+    e->wall_texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888,
+                                        SDL_TEXTUREACCESS_STREAMING, config.width, config.height);
+    if (e->wall_texture)
+      SDL_SetTextureBlendMode(e->wall_texture, SDL_BLENDMODE_BLEND);
+
+    e->floor_ceil_texture =
+        SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+                          config.width, config.height);
+    if (e->floor_ceil_texture)
+      SDL_SetTextureBlendMode(e->floor_ceil_texture, SDL_BLENDMODE_BLEND);
+
+    e->sprite_texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888,
+                                          SDL_TEXTUREACCESS_STREAMING, config.width, config.height);
+    if (e->sprite_texture)
+      SDL_SetTextureBlendMode(e->sprite_texture, SDL_BLENDMODE_BLEND);
+
+    int floor_tex = 7;
+    e->floor_texture =
+        SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
+                          RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
+    if (e->floor_texture) {
+      SDL_SetTextureBlendMode(e->floor_texture, SDL_BLENDMODE_NONE);
+      SDL_UpdateTexture(e->floor_texture, NULL, e->textures[floor_tex].pixels,
+                        RC_TEXTURE_WIDTH * 4);
+    }
+
+    int ceil_tex = 3;
+    e->ceiling_texture =
+        SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
+                          RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
+    if (e->ceiling_texture) {
+      SDL_SetTextureBlendMode(e->ceiling_texture, SDL_BLENDMODE_NONE);
+      SDL_UpdateTexture(e->ceiling_texture, NULL, e->textures[ceil_tex].pixels,
+                        RC_TEXTURE_WIDTH * 4);
+    }
+
+    for (int i = 0; i < 3; i++) {
+      int tex_num = 8 + i;
+      e->sprite_textures[i] =
+          SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
+                            RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
+      if (!e->sprite_textures[i]) {
+        fprintf(stderr, "Failed to create sprite texture %d\n", i);
+      } else {
+        SDL_SetTextureBlendMode(e->sprite_textures[i], SDL_BLENDMODE_BLEND);
+        SDL_UpdateTexture(e->sprite_textures[i], NULL, e->textures[tex_num].pixels,
+                          RC_TEXTURE_WIDTH * 4);
+      }
+    }
   }
 
   e->camera = rc_camera_create(config.width, config.height);
@@ -196,81 +261,6 @@ RcEngine *rc_engine_create(RcConfig config)
   rc_camera_set_direction(e->camera, -1.0, 0.0);
 
   e->input = rc_input_create(config.input_backend);
-
-  e->textures = create_textures();
-
-  if (!e->textures) {
-    fprintf(stderr, "Failed to create textures\n");
-    rc_camera_destroy(e->camera);
-    SDL_DestroyRenderer(e->renderer);
-    SDL_DestroyWindow(e->window);
-    free(e);
-    shutdown_sdl();
-    return NULL;
-  }
-
-  for (int i = 0; i < 11; i++) {
-    e->wall_textures[i] =
-        SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
-                          RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
-    if (!e->wall_textures[i]) {
-      fprintf(stderr, "Failed to create wall texture %d\n", i);
-    } else {
-      SDL_SetTextureBlendMode(e->wall_textures[i], SDL_BLENDMODE_NONE);
-      SDL_UpdateTexture(e->wall_textures[i], NULL, e->textures[i].pixels, RC_TEXTURE_WIDTH * 4);
-    }
-  }
-
-  e->wall_texture = SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888,
-                                      SDL_TEXTUREACCESS_STREAMING, config.width, config.height);
-  if (e->wall_texture) {
-    SDL_SetTextureBlendMode(e->wall_texture, SDL_BLENDMODE_BLEND);
-  }
-
-  e->floor_ceil_texture =
-      SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-                        config.width, config.height);
-  if (e->floor_ceil_texture) {
-    SDL_SetTextureBlendMode(e->floor_ceil_texture, SDL_BLENDMODE_BLEND);
-  }
-
-  e->sprite_texture = SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888,
-                                        SDL_TEXTUREACCESS_STREAMING, config.width, config.height);
-  if (e->sprite_texture) {
-    SDL_SetTextureBlendMode(e->sprite_texture, SDL_BLENDMODE_BLEND);
-  }
-
-  int floor_tex = 7;
-  e->floor_texture =
-      SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
-                        RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
-  if (e->floor_texture) {
-    SDL_SetTextureBlendMode(e->floor_texture, SDL_BLENDMODE_NONE);
-    SDL_UpdateTexture(e->floor_texture, NULL, e->textures[floor_tex].pixels, RC_TEXTURE_WIDTH * 4);
-  }
-
-  int ceil_tex = 3;
-  e->ceiling_texture =
-      SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
-                        RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
-  if (e->ceiling_texture) {
-    SDL_SetTextureBlendMode(e->ceiling_texture, SDL_BLENDMODE_NONE);
-    SDL_UpdateTexture(e->ceiling_texture, NULL, e->textures[ceil_tex].pixels, RC_TEXTURE_WIDTH * 4);
-  }
-
-  for (int i = 0; i < 3; i++) {
-    int tex_num = 8 + i;
-    e->sprite_textures[i] =
-        SDL_CreateTexture(e->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
-                          RC_TEXTURE_WIDTH, RC_TEXTURE_HEIGHT);
-    if (!e->sprite_textures[i]) {
-      fprintf(stderr, "Failed to create sprite texture %d\n", i);
-    } else {
-      SDL_SetTextureBlendMode(e->sprite_textures[i], SDL_BLENDMODE_BLEND);
-      SDL_UpdateTexture(e->sprite_textures[i], NULL, e->textures[tex_num].pixels,
-                        RC_TEXTURE_WIDTH * 4);
-    }
-  }
 
   e->last_time = SDL_GetTicks();
   e->accumulator = 0.0f;
@@ -286,8 +276,11 @@ void rc_engine_destroy(RcEngine *e)
   if (e->window)
     SDL_DestroyWindow(e->window);
 
+  // if (e->gpu)
+  //   rc_gpu_renderer_destroy(e->gpu);
+
   if (e->renderer)
-    SDL_DestroyRenderer(e->renderer);
+    rc_renderer_destroy(e->renderer);
 
   if (e->level)
     rc_level_destroy(e->level);
@@ -301,23 +294,25 @@ void rc_engine_destroy(RcEngine *e)
   if (e->textures)
     free_textures(e->textures);
 
-  if (e->wall_texture)
-    SDL_DestroyTexture(e->wall_texture);
-  for (int i = 0; i < 11; i++) {
-    if (e->wall_textures[i])
-      SDL_DestroyTexture(e->wall_textures[i]);
-  }
-  if (e->floor_ceil_texture)
-    SDL_DestroyTexture(e->floor_ceil_texture);
-  if (e->sprite_texture)
-    SDL_DestroyTexture(e->sprite_texture);
-  if (e->floor_texture)
-    SDL_DestroyTexture(e->floor_texture);
-  if (e->ceiling_texture)
-    SDL_DestroyTexture(e->ceiling_texture);
-  for (int i = 0; i < 3; i++) {
-    if (e->sprite_textures[i])
-      SDL_DestroyTexture(e->sprite_textures[i]);
+  if (!e->use_gpu) {
+    if (e->wall_texture)
+      SDL_DestroyTexture(e->wall_texture);
+    for (int i = 0; i < 11; i++) {
+      if (e->wall_textures[i])
+        SDL_DestroyTexture(e->wall_textures[i]);
+    }
+    if (e->floor_ceil_texture)
+      SDL_DestroyTexture(e->floor_ceil_texture);
+    if (e->sprite_texture)
+      SDL_DestroyTexture(e->sprite_texture);
+    if (e->floor_texture)
+      SDL_DestroyTexture(e->floor_texture);
+    if (e->ceiling_texture)
+      SDL_DestroyTexture(e->ceiling_texture);
+    for (int i = 0; i < 3; i++) {
+      if (e->sprite_textures[i])
+        SDL_DestroyTexture(e->sprite_textures[i]);
+    }
   }
 
   shutdown_sdl();
@@ -382,338 +377,135 @@ void rc_engine_remove_actor(RcEngine *e, RcActor *actor)
   (void)actor;
 }
 
-static void render_walls(RcEngine *e, double *z_buffer);
-static void render_floor_ceiling(RcEngine *e);
-static void render_sprites(RcEngine *e, double *z_buffer);
 static void handle_events(RcEngine *e);
 static void update(RcEngine *e);
 static void render(RcEngine *e);
 
+// static void render_cpu(RcEngine *e)
+// {
+//   int w = e->config.width;
+//   double *z_buffer = malloc(sizeof(double) * w);
+
+//   SDL_SetRenderDrawColor(e->renderer, 30, 30, 50, 255);
+//   SDL_RenderClear(e->renderer);
+
+//   render_floor_ceiling(e);
+//   render_walls(e, z_buffer);
+//   render_sprites(e, z_buffer);
+
+//   free(z_buffer);
+
+//   if (e->render_fn && e->game_state)
+//     e->render_fn(e->game_state, e);
+
+//   SDL_RenderPresent(e->renderer);
+// }
+
+// static void render_gpu(RcEngine *e)
+// {
+//   RcGPURenderer *r = e->gpu;
+//   RcCamera *cam = e->camera;
+//   RcLevel *world = e->level;
+//   int w = e->config.width;
+//   int h = e->config.height;
+
+//   rc_gpu_renderer_begin_frame(r);
+
+//   WallIntersect intersects[MAX_WALL_STRIPS];
+//   int num_intersects = 0;
+
+//   for (int x = 0; x < w && num_intersects < MAX_WALL_STRIPS; x++) {
+//     double camera_x = 2 * x / (double)w - 1.0;
+//     double ray_dir_x = cam->dir.x + cam->plane.x * camera_x;
+//     double ray_dir_y = cam->dir.y + cam->plane.y * camera_x;
+
+//     int map_x = (int)cam->pos.x;
+//     int map_y = (int)cam->pos.y;
+
+//     double side_dist_x, side_dist_y;
+//     double delta_dist_x = (ray_dir_x == 0) ? 1e30 : fabs(1 / ray_dir_x);
+//     double delta_dist_y = (ray_dir_y == 0) ? 1e30 : fabs(1 / ray_dir_y);
+//     double perp_wall_dist;
+
+//     int step_x, step_y;
+//     int hit = 0;
+//     int side;
+
+//     if (ray_dir_x < 0) {
+//       step_x = -1;
+//       side_dist_x = (cam->pos.x - map_x) * delta_dist_x;
+//     } else {
+//       step_x = 1;
+//       side_dist_x = (map_x + 1.0 - cam->pos.x) * delta_dist_x;
+//     }
+
+//     if (ray_dir_y < 0) {
+//       step_y = -1;
+//       side_dist_y = (cam->pos.y - map_y) * delta_dist_y;
+//     } else {
+//       step_y = 1;
+//       side_dist_y = (map_y + 1.0 - cam->pos.y) * delta_dist_y;
+//     }
+
+//     while (hit == 0) {
+//       if (side_dist_x < side_dist_y) {
+//         side_dist_x += delta_dist_x;
+//         map_x += step_x;
+//         side = 0;
+//       } else {
+//         side_dist_y += delta_dist_y;
+//         map_y += step_y;
+//         side = 1;
+//       }
+//       if (rc_level_get_wall(world, map_x, map_y) > 0)
+//         hit = 1;
+//     }
+
+//     if (side == 0)
+//       perp_wall_dist = (side_dist_x - delta_dist_x);
+//     else
+//       perp_wall_dist = (side_dist_y - delta_dist_y);
+
+//     double wall_x;
+//     if (side == 0)
+//       wall_x = cam->pos.y + perp_wall_dist * ray_dir_y;
+//     else
+//       wall_x = cam->pos.x + perp_wall_dist * ray_dir_x;
+//     wall_x -= floor(wall_x);
+
+//     intersects[num_intersects].perp_wall_distance = perp_wall_dist;
+//     intersects[num_intersects].side = side;
+//     intersects[num_intersects].map_x = map_x;
+//     intersects[num_intersects].map_y = map_y;
+//     intersects[num_intersects].wall_type = rc_level_get_wall(world, map_x, map_y);
+//     intersects[num_intersects].vect = (Vector){wall_x, 0, 0};
+//     intersects[num_intersects].ray_dir = (Vector){ray_dir_x, ray_dir_y, 0};
+//     num_intersects++;
+//   }
+
+//   rc_gpu_renderer_draw_scene(r, 0, 0, 0, 0, 0, 0, w, h, NULL, rc_level_get_width(world),
+//                              rc_level_get_height(world), intersects, num_intersects, NULL, 0);
+
+//   rc_gpu_renderer_end_frame(r);
+// }
+
 static void render(RcEngine *e)
 {
-  if (!e || !e->renderer || !e->camera || !e->level)
+  if (!e || !e->camera || !e->level)
+    return;
+  if (!e->use_gpu && !e->renderer)
     return;
 
-  int w = e->config.width;
-  double *z_buffer = malloc(sizeof(double) * w);
+  rc_renderer_render(e);
 
-  SDL_SetRenderDrawColor(e->renderer, 30, 30, 50, 255);
-  SDL_RenderClear(e->renderer);
+  // if (e->use_gpu) {
+  //   render_gpu(e);
+  // } else {
+  //   render_cpu(e);
+  // }
 
-  render_floor_ceiling(e);
-  render_walls(e, z_buffer);
-  render_sprites(e, z_buffer);
-
-  free(z_buffer);
-
-  if (e->render_fn && e->game_state) {
+  if (e->render_fn && e->game_state)
     e->render_fn(e->game_state, e);
-  }
-
-  SDL_RenderPresent(e->renderer);
-}
-
-static void render_floor_ceiling(RcEngine *e)
-{
-  RcCamera *cam = e->camera;
-  SDL_Renderer *r = e->renderer;
-  int w = e->config.width;
-  int h = e->config.height;
-
-  SDL_Texture *texture = e->floor_ceil_texture;
-  SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-
-  void *pixels;
-  int pitch;
-  SDL_LockTexture(texture, NULL, &pixels, &pitch);
-  memset(pixels, 0, pitch * h);
-  uint32_t *pixel_data = (uint32_t *)pixels;
-
-  for (int y = h / 2; y < h; ++y) {
-    float rayDirX0 = cam->dir.x - cam->plane.x;
-    float rayDirY0 = cam->dir.y - cam->plane.y;
-    float rayDirX1 = cam->dir.x + cam->plane.x;
-    float rayDirY1 = cam->dir.y + cam->plane.y;
-
-    int p = y - h / 2;
-    if (p == 0)
-      p = 1;
-    if (p < 0)
-      p = 1;
-
-    float posZ = 0.5f * h;
-    float rowDistance = posZ / p;
-    if (rowDistance < 0.1f)
-      rowDistance = 0.1f;
-
-    float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / w;
-    float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / w;
-
-    float floorX = cam->pos.x + rowDistance * rayDirX0;
-    float floorY = cam->pos.y + rowDistance * rayDirY0;
-
-    for (int x = 0; x < w; x++) {
-      int cellX = (int)(floorX);
-      int cellY = (int)(floorY);
-
-      int tx = (int)(RC_TEXTURE_WIDTH * (floorX - cellX)) % RC_TEXTURE_WIDTH;
-      int ty = (int)(RC_TEXTURE_HEIGHT * (floorY - cellY)) % RC_TEXTURE_HEIGHT;
-
-      floorX += floorStepX;
-      floorY += floorStepY;
-
-      if (cellX >= 0 && cellX < 24 && cellY >= 0 && cellY < 24) {
-        int floor_tex = 7;
-        int ceil_tex = 3;
-
-        uint32_t floor_color = e->textures[floor_tex].pixels[RC_TEXTURE_HEIGHT * ty + tx];
-        pixel_data[(y * (pitch / 4)) + x] = floor_color;
-
-        uint32_t ceil_color = e->textures[ceil_tex].pixels[RC_TEXTURE_HEIGHT * ty + tx];
-        pixel_data[((h - y) * (pitch / 4)) + x] = ceil_color;
-      } else {
-        pixel_data[(y * (pitch / 4)) + x] = 0xFF606078;
-        pixel_data[((h - y) * (pitch / 4)) + x] = 0xFF282840;
-      }
-    }
-  }
-
-  SDL_UnlockTexture(texture);
-  SDL_RenderTexture(r, texture, NULL, NULL);
-}
-
-static void render_sprites(RcEngine *e, double *z_buffer)
-{
-  RcCamera *cam = e->camera;
-  RcLevel *world = e->level;
-  SDL_Renderer *r = e->renderer;
-  int w = e->config.width;
-  int h = e->config.height;
-
-  RcSprite *sprites = NULL;
-  int sprite_count = 0;
-  rc_level_get_sprites(world, &sprites, &sprite_count);
-
-  if (sprite_count == 0 || !sprites)
-    return;
-
-  double *sprite_dist = malloc(sizeof(double) * sprite_count);
-  int *sprite_order = malloc(sizeof(int) * sprite_count);
-
-  for (int i = 0; i < sprite_count; i++) {
-    sprite_order[i] = i;
-    sprite_dist[i] = ((cam->pos.x - sprites[i].pos.x) * (cam->pos.x - sprites[i].pos.x) +
-                      (cam->pos.y - sprites[i].pos.y) * (cam->pos.y - sprites[i].pos.y));
-  }
-
-  for (int i = 0; i < sprite_count - 1; i++) {
-    for (int j = i + 1; j < sprite_count; j++) {
-      if (sprite_dist[j] > sprite_dist[i]) {
-        double temp_dist = sprite_dist[i];
-        sprite_dist[i] = sprite_dist[j];
-        sprite_dist[j] = temp_dist;
-        int temp_order = sprite_order[i];
-        sprite_order[i] = sprite_order[j];
-        sprite_order[j] = temp_order;
-      }
-    }
-  }
-
-  SDL_Texture *texture = e->sprite_texture;
-  SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-
-  void *pixels;
-  int pitch;
-  SDL_LockTexture(texture, NULL, &pixels, &pitch);
-  memset(pixels, 0, pitch * h);
-  uint32_t *pixel_data = (uint32_t *)pixels;
-
-  for (int i = 0; i < sprite_count; i++) {
-    RcSprite *sprite = &sprites[sprite_order[i]];
-
-    double sprite_x = sprite->pos.x - cam->pos.x;
-    double sprite_y = sprite->pos.y - cam->pos.y;
-
-    double inv_det = 1.0 / (cam->plane.x * cam->dir.y - cam->dir.x * cam->plane.y);
-    double transform_x = inv_det * (cam->dir.y * sprite_x - cam->dir.x * sprite_y);
-    double transform_y = inv_det * (-cam->plane.y * sprite_x + cam->plane.x * sprite_y);
-
-    if (transform_y <= 0)
-      continue;
-
-    int sprite_screen_x = (int)((w / 2) * (1 + transform_x / transform_y));
-    int sprite_height = abs((int)(h / transform_y));
-
-    int draw_start_y = -sprite_height / 2 + h / 2;
-    if (draw_start_y < 0)
-      draw_start_y = 0;
-    int draw_end_y = sprite_height / 2 + h / 2;
-    if (draw_end_y >= h)
-      draw_end_y = h - 1;
-
-    int sprite_width = abs((int)(h / transform_y));
-    int draw_start_x = -sprite_width / 2 + sprite_screen_x;
-    if (draw_start_x < 0)
-      draw_start_x = 0;
-    int draw_end_x = sprite_width / 2 + sprite_screen_x;
-    if (draw_end_x >= w)
-      draw_end_x = w - 1;
-
-    int tex_num = 8 + (sprite->texture_id % 3);
-
-    for (int stripe = draw_start_x; stripe < draw_end_x; stripe++) {
-      int tex_x =
-          (int)((stripe - (-sprite_width / 2 + sprite_screen_x)) * RC_TEXTURE_WIDTH / sprite_width);
-
-      if (transform_y < z_buffer[stripe]) {
-        for (int y = draw_start_y; y < draw_end_y; y++) {
-          int tex_y = (((y * 2 - h + sprite_height) * RC_TEXTURE_HEIGHT) / sprite_height) / 2;
-
-          uint32_t color = e->textures[tex_num].pixels[RC_TEXTURE_HEIGHT * tex_y + tex_x];
-
-          if ((color & 0xFF) == 0xFF) {
-            pixel_data[(y * (pitch / 4)) + stripe] = color;
-          }
-        }
-      }
-    }
-  }
-
-  SDL_UnlockTexture(texture);
-  SDL_RenderTexture(r, texture, NULL, NULL);
-
-  free(sprite_dist);
-  free(sprite_order);
-}
-
-static void render_walls(RcEngine *e, double *z_buffer)
-{
-  RcCamera *cam = e->camera;
-  RcLevel *world = e->level;
-  SDL_Renderer *r = e->renderer;
-  int w = e->config.width;
-  int h = e->config.height;
-
-  SDL_Texture *texture = e->wall_texture;
-  SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-
-  void *pixels;
-  int pitch;
-  SDL_LockTexture(texture, NULL, &pixels, &pitch);
-  memset(pixels, 0, pitch * h);
-  uint32_t *pixel_data = (uint32_t *)pixels;
-
-  for (int x = 0; x < w; x++) {
-    double camera_x = 2 * x / (double)w - 1.0;
-    double ray_dir_x = cam->dir.x + cam->plane.x * camera_x;
-    double ray_dir_y = cam->dir.y + cam->plane.y * camera_x;
-
-    int map_x = (int)cam->pos.x;
-    int map_y = (int)cam->pos.y;
-
-    double side_dist_x, side_dist_y;
-    double delta_dist_x = (ray_dir_x == 0) ? 1e30 : fabs(1 / ray_dir_x);
-    double delta_dist_y = (ray_dir_y == 0) ? 1e30 : fabs(1 / ray_dir_y);
-    double perp_wall_dist;
-
-    int step_x, step_y;
-    int hit = 0;
-    int side;
-
-    if (ray_dir_x < 0) {
-      step_x = -1;
-      side_dist_x = (cam->pos.x - map_x) * delta_dist_x;
-    } else {
-      step_x = 1;
-      side_dist_x = (map_x + 1.0 - cam->pos.x) * delta_dist_x;
-    }
-
-    if (ray_dir_y < 0) {
-      step_y = -1;
-      side_dist_y = (cam->pos.y - map_y) * delta_dist_y;
-    } else {
-      step_y = 1;
-      side_dist_y = (map_y + 1.0 - cam->pos.y) * delta_dist_y;
-    }
-
-    while (hit == 0) {
-      if (side_dist_x < side_dist_y) {
-        side_dist_x += delta_dist_x;
-        map_x += step_x;
-        side = 0;
-      } else {
-        side_dist_y += delta_dist_y;
-        map_y += step_y;
-        side = 1;
-      }
-
-      if (rc_level_get_wall(world, map_x, map_y) > 0)
-        hit = 1;
-    }
-
-    if (side == 0)
-      perp_wall_dist = (side_dist_x - delta_dist_x);
-    else
-      perp_wall_dist = (side_dist_y - delta_dist_y);
-
-    z_buffer[x] = perp_wall_dist;
-
-    int line_height = (int)(h / perp_wall_dist);
-    if (line_height == 0)
-      line_height = 1;
-
-    int draw_start = -line_height / 2 + h / 2;
-    if (draw_start < 0)
-      draw_start = 0;
-
-    int draw_end = line_height / 2 + h / 2;
-    if (draw_end >= h)
-      draw_end = h - 1;
-
-    int wall_type = rc_level_get_wall(world, map_x, map_y);
-    int tex_num = wall_type - 1;
-
-    double wall_x;
-    if (side == 0)
-      wall_x = cam->pos.y + perp_wall_dist * ray_dir_y;
-    else
-      wall_x = cam->pos.x + perp_wall_dist * ray_dir_x;
-    wall_x -= floor(wall_x);
-
-    int tex_x = (int)(wall_x * RC_TEXTURE_WIDTH);
-    if (side == 0 && ray_dir_x > 0)
-      tex_x = RC_TEXTURE_WIDTH - tex_x - 1;
-    if (side == 1 && ray_dir_y < 0)
-      tex_x = RC_TEXTURE_WIDTH - tex_x - 1;
-
-    for (int y = draw_start; y <= draw_end; y++) {
-      int tex_y = (((y * 2 - h + line_height) * RC_TEXTURE_HEIGHT) / line_height) / 2;
-
-      uint32_t color;
-      if (tex_num >= 0 && e->textures && tex_num < 11) {
-        color = e->textures[tex_num].pixels[RC_TEXTURE_HEIGHT * tex_y + tex_x];
-      } else {
-        color = 0xFF00FFFF;
-      }
-
-      if (side == 1) {
-        uint8_t r, g, b, a;
-        r = (color >> 24) & 0xFF;
-        g = (color >> 16) & 0xFF;
-        b = (color >> 8) & 0xFF;
-        a = color & 0xFF;
-        r = (r * 0.7);
-        g = (g * 0.7);
-        b = (b * 0.7);
-        color = (r << 24) | (g << 16) | (b << 8) | a;
-      }
-
-      pixel_data[(y * (pitch / 4)) + x] = color;
-    }
-  }
-
-  SDL_UnlockTexture(texture);
-  SDL_RenderTexture(r, texture, NULL, NULL);
 }
 
 static void update(RcEngine *e)
@@ -823,8 +615,16 @@ void rc_engine_run(RcEngine *e)
 
     render(e);
 
+    if (e->config.target_fps > 0) {
+      int work_ms = SDL_GetTicks() - e->current_time;
+      int target_ms = (int)(1000.0f / e->config.target_fps + 0.5f);
+      int delay = target_ms - work_ms;
+      if (delay > 0)
+        SDL_Delay(delay);
+    }
+
     e->frame_count++;
-    e->fps_timer += (uint32_t)(frame_time * 1000);
+    e->fps_timer += SDL_GetTicks() - e->current_time;
     if (e->fps_timer >= 1000) {
       e->fps = e->frame_count * 1000.0f / e->fps_timer;
       e->frame_count = 0;
@@ -836,12 +636,6 @@ void rc_engine_run(RcEngine *e)
                  e->config.title ? e->config.title : "Raycaster", e->fps);
         SDL_SetWindowTitle(e->window, title);
       }
-    }
-
-    if (e->config.target_fps > 0) {
-      int delay = 1000 / e->config.target_fps - (int)(frame_time * 1000);
-      if (delay > 0)
-        SDL_Delay(delay);
     }
   }
 }
@@ -855,3 +649,5 @@ void rc_engine_stop(RcEngine *e)
 bool rc_engine_is_running(RcEngine *e) { return e ? e->running : false; }
 
 float rc_engine_get_delta_time(RcEngine *e) { return e ? e->delta_time : 0.0f; }
+
+RcRenderer *rc_engine_get_renderer(RcEngine *e) { return e ? e->renderer : NULL; }

@@ -1,4 +1,3 @@
-#include <raycaster/gpu_renderer.h>
 #include <raycaster/raycaster.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,24 +7,16 @@ int main(int argc, char *argv[])
   (void)argc;
   (void)argv;
 
-  printf("Testing GPU renderer...\n");
-  RcGPURenderer *gpu = rc_gpu_renderer_create(NULL);
-  if (gpu) {
-    printf("GPU renderer initialized!\n");
-    rc_gpu_renderer_destroy(gpu);
-  } else {
-    printf("GPU renderer not available, using SDL_Render\n");
-  }
-
-  RcConfig config;
-  rc_config_set_defaults(&config);
+  RcEngineConfig config;
+  rc_engine_config_set_defaults(&config);
   config.title = "Raycaster Game";
   config.width = 800;
   config.height = 600;
-  config.target_fps = 60;
+  config.target_fps = 120;
   config.show_fps = true;
   config.strip_count = 1;
   config.input_backend = RC_INPUT_BACKEND_SDL;
+  config.use_gpu = true;
 
   RcEngine *engine = rc_engine_create(config);
   if (!engine) {

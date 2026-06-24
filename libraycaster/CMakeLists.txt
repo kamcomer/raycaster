@@ -60,9 +60,9 @@ set(RAYCASTER_SOURCES
     src/sim/actor.c
     src/sim/camera.c
     src/sim/engine.c
-    src/render/frame.c
-    src/render/texture.c
-    src/render/gpu_renderer.c
+    src/renderer/renderer.c
+    src/renderer/gpu_renderer.c
+    src/renderer/cpu_renderer.c
     src/platform/sdl/sdl_input.c
     src/platform/sdl/sdl_window.c
     src/platform/sdl/sdl_renderer.c
@@ -77,7 +77,8 @@ set(RAYCASTER_PUBLIC_HEADERS
     include/raycaster/level.h
     include/raycaster/actor.h
     include/raycaster/raycaster.h
-    include/raycaster/gpu_renderer.h
+    include/raycaster/renderer.h
+    include/raycaster/engine.h
     include/raycaster/vector.h
 )
 
