@@ -39,7 +39,7 @@ static void destroy_data(MapLevelData *data)
   free(data->ceil);
   free(data->floor);
   free(data->sprites);
-  string_array_destroy(data->tex_paths);
+  string_array_destroy(&data->tex_paths);
 
   for (uint32_t i = 0; i < data->sprite_type_count; i++)
     free(data->sprite_types[i].path);
@@ -58,36 +58,14 @@ static int parse_map_section(FILE *file, uint8_t ***grid, int width, int height)
   return 0;
 }
 
-static int parse_texture_path(char *buf, StringArray *paths)
+static int parse_texture_section(char *buf, StringArray *paths)
 {
-  if (paths->len == paths->max_len) {
-    char **old_paths = paths->strs;
-    paths = duplicate_string_array(paths, paths->len + 10);
-
-    // Free old strs
-    for (size_t i = 0; i < paths->len; i++) {
-      free(old_paths[i]);
-    }
-    free(old_paths);
-    if (paths->strs == NULL) {
-      return -1;
-    }
-
-    paths->max_len += 10;
-  }
-
   const char *path = buf;
   char *colon = strchr(buf, ':');
   if (colon != NULL && colon[1] == ' ')
     path = colon + 2;
-  paths->strs[paths->len] = malloc(strlen(path) + 1);
-  if (!paths->strs[paths->len])
-    return -1;
 
-  strcpy(paths->strs[paths->len], path);
-  paths->len++;
-
-  return 0;
+  return string_array_push(paths, path);
 }
 
 RcLevel *rc_level_load_from_file(const char *file_path)
@@ -96,15 +74,14 @@ RcLevel *rc_level_load_from_file(const char *file_path)
   if (!data)
     return NULL;
 
-  data->tex_paths = string_array_create(DEFAULT_NUM_ASSETS);
-  if (!data->tex_paths) {
+  if (string_array_init(&data->tex_paths, DEFAULT_NUM_ASSETS) != 0) {
     destroy_data(data);
     return NULL;
   }
 
   FILE *file = fopen(file_path, "r");
   if (!file) {
-    free(data);
+    destroy_data(data);
     return NULL;
   }
 
@@ -170,7 +147,7 @@ RcLevel *rc_level_load_from_file(const char *file_path)
       section = MAP_SECTION_NONE;
       break;
     case MAP_SECTION_TEXTURES: {
-      if (parse_texture_path(buf, data->tex_paths) != 0) {
+      if (parse_texture_section(buf, &data->tex_paths) != 0) {
         fclose(file);
         destroy_data(data);
         return NULL;
@@ -246,6 +223,11 @@ RcLevel *rc_level_create_empty(uint32_t width, uint32_t height)
   data->width = width;
   data->height = height;
   data->unit_size = DEFAULT_MAP_UNIT_SIZE;
+
+  if (string_array_init(&data->tex_paths, DEFAULT_NUM_ASSETS) != 0) {
+    free(data);
+    return NULL;
+  }
 
   data->walls = calloc(height, sizeof(uint8_t *));
   data->ceil = calloc(height, sizeof(uint8_t *));
@@ -343,21 +325,7 @@ static void maplevel_destroy(RcLevel *w)
   if (!data)
     return;
 
-  for (size_t i = 0; i < data->height; i++) {
-    free(data->walls[i]);
-    free(data->ceil[i]);
-    free(data->floor[i]);
-  }
-  free(data->walls);
-  free(data->ceil);
-  free(data->floor);
-  string_array_destroy(data->tex_paths);
-
-  for (uint32_t i = 0; i < data->sprite_type_count; i++)
-    free(data->sprite_types[i].path);
-  free(data->sprite_types);
-  free(data->sprites);
-  free(data);
+  destroy_data(data);
   free(w);
 }
 

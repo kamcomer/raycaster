@@ -5,64 +5,81 @@
 
 void trim_line(char *line)
 {
-  // Remove leading whitespace
   char *start = line;
   while (*start && isspace((unsigned char)*start)) {
     start++;
   }
 
-  // Remove trailing whitespace
   char *end = start + strlen(start) - 1;
   while (end > start && isspace((unsigned char)*end)) {
     *end = '\0';
     end--;
   }
 
-  // Shift the trimmed line back to the original buffer
   if (start != line) {
     memmove(line, start, strlen(start) + 1);
   }
 }
 
-StringArray *string_array_create(size_t size)
+static int string_array_resize(StringArray *sa, uint32_t size)
 {
-  StringArray *a = malloc(sizeof(StringArray));
-  if (!a) {
-    return NULL;
-  }
-  a->strs = (char **)malloc(size * sizeof(char *));
-  if (!a->strs) {
-    free(a);
-    return NULL;
-  }
-  a->len = 0;
-  a->max_len = size;
-  return a;
+  char **tmp = realloc(sa->strs, size * sizeof(char *));
+  if (!tmp)
+    return -1;
+  sa->strs = tmp;
+  sa->capacity = size;
+  return 0;
 }
-void string_array_destroy(StringArray *a)
+
+int string_array_init(StringArray *sa, size_t size)
 {
-  if (!a) {
-    return;
-  }
-  if (a->strs) {
-    for (size_t i = 0; i < a->len; i++) {
-      free(a->strs[i]);
+  if (!sa)
+    return -1;
+
+  sa->strs = (char **)malloc(size * sizeof(char *));
+  if (!sa->strs)
+    return -1;
+  sa->len = 0;
+  sa->capacity = size;
+  return 0;
+}
+
+void string_array_destroy(StringArray *sa)
+{
+  if (sa->strs) {
+    for (size_t i = 0; i < sa->len; i++) {
+      free(sa->strs[i]);
     }
-    free(a->strs);
+    free(sa->strs);
+    sa->strs = NULL;
   }
-  free(a);
   return;
 }
 
-StringArray *duplicate_string_array(StringArray *src, size_t dest_size)
+int string_array_push(StringArray *sa, const char *s)
 {
-  if (src == NULL || src->strs == NULL || src->len <= 0 || dest_size < src->len) {
-    return NULL;
+  if (!sa->strs)
+    return -1;
+
+  if (sa->len == sa->capacity) {
+    if (string_array_resize(sa, sa->capacity * 2) != 0)
+      return -1;
   }
 
-  StringArray *dest = string_array_create(dest_size);
-  if (dest == NULL) {
-    return NULL;
+  sa->strs[sa->len] = malloc(strlen(s) + 1);
+
+  if (!sa->strs[sa->len])
+    return -1;
+
+  strcpy(sa->strs[sa->len], s);
+  sa->len++;
+  return 0;
+}
+
+int duplicate_string_array(StringArray *src, StringArray *dest, size_t dest_size)
+{
+  if (src == NULL || dest == NULL || src->strs == NULL || src->len <= 0 || dest_size < src->len) {
+    return -1;
   }
 
   for (size_t i = 0; i < src->len; i++) {
@@ -76,11 +93,11 @@ StringArray *duplicate_string_array(StringArray *src, size_t dest_size)
       for (size_t j = 0; j < dest_size; j++) {
         free(dest->strs[j]);
       }
-      free(dest);
-      return NULL;
+      return -1;
     }
 
     strcpy(dest->strs[i], src->strs[i]);
+    dest->len++;
   }
-  return dest;
+  return 0;
 }

@@ -106,14 +106,12 @@ if(RAYCASTER_BUILD_TESTS)
     add_executable(test_map_level
         tests/unity.c
         tests/test_map_level.c
-        src/level/level.c
-        src/level/map_level.c
-        src/util/general.c
     )
     target_include_directories(test_map_level PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
     )
+    target_link_libraries(test_map_level PRIVATE raycaster)
     add_test(NAME map_level COMMAND test_map_level)
 endif()

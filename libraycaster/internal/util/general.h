@@ -5,13 +5,14 @@
 
 typedef struct {
   char **strs;
-  size_t max_len;
+  size_t capacity;
   size_t len;
 } StringArray;
 
 void trim_line(char *line);
 
-StringArray *string_array_create(size_t size);
-void string_array_destroy(StringArray *a);
-StringArray *duplicate_string_array(StringArray *src, size_t dest_size);
+int string_array_init(StringArray *sa, size_t size);
+int string_array_push(StringArray *sa, const char *s);
+void string_array_destroy(StringArray *sa);
+int duplicate_string_array(StringArray *src, StringArray *dest, size_t dest_size);
 #endif // GENERAL_H

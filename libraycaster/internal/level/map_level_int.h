@@ -34,7 +34,7 @@ typedef struct {
   size_t width;
   size_t height;
 
-  StringArray *tex_paths;
+  StringArray tex_paths;
 
   SpriteTypeDef *sprite_types;
   uint32_t sprite_type_count;

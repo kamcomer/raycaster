@@ -197,13 +197,13 @@ void test_parse_textures(void)
   TEST_ASSERT_NOT_NULL(w);
 
   MapLevelData *data = (MapLevelData *)w->impl;
-  TEST_ASSERT_EQUAL_INT(3, data->tex_paths->len);
-  TEST_ASSERT_NOT_NULL(data->tex_paths->strs[0]);
-  TEST_ASSERT_NOT_NULL(data->tex_paths->strs[1]);
-  TEST_ASSERT_NOT_NULL(data->tex_paths->strs[2]);
-  TEST_ASSERT_EQUAL_STRING("tex_a.png", data->tex_paths->strs[0]);
-  TEST_ASSERT_EQUAL_STRING("tex_b.png", data->tex_paths->strs[1]);
-  TEST_ASSERT_EQUAL_STRING("tex_c.png", data->tex_paths->strs[2]);
+  TEST_ASSERT_EQUAL_INT(3, data->tex_paths.len);
+  TEST_ASSERT_NOT_NULL(data->tex_paths.strs[0]);
+  TEST_ASSERT_NOT_NULL(data->tex_paths.strs[1]);
+  TEST_ASSERT_NOT_NULL(data->tex_paths.strs[2]);
+  TEST_ASSERT_EQUAL_STRING("tex_a.png", data->tex_paths.strs[0]);
+  TEST_ASSERT_EQUAL_STRING("tex_b.png", data->tex_paths.strs[1]);
+  TEST_ASSERT_EQUAL_STRING("tex_c.png", data->tex_paths.strs[2]);
 
   rc_level_destroy(w);
   remove("test_tex.txt");
