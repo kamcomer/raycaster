@@ -181,10 +181,10 @@ void test_parse_sprites(void)
   TEST_ASSERT_EQUAL_INT(6, sprites[1].texture_id);
 
   MapLevelData *data = (MapLevelData *)w->impl;
-  TEST_ASSERT_EQUAL_INT(7, data->sprite_type_count);
-  TEST_ASSERT_NOT_NULL(data->sprite_types);
-  TEST_ASSERT_EQUAL_STRING("type_a.png", data->sprite_types[0].path);
-  TEST_ASSERT_EQUAL_STRING("type_g.png", data->sprite_types[6].path);
+  TEST_ASSERT_EQUAL_INT(7, data->sprite_types.len);
+  TEST_ASSERT_NOT_NULL(data->sprite_types.items);
+  TEST_ASSERT_EQUAL_STRING("type_a.png", data->sprite_types.items[0].path);
+  TEST_ASSERT_EQUAL_STRING("type_g.png", data->sprite_types.items[6].path);
 
   rc_level_destroy(w);
   remove("test_sprites.txt");

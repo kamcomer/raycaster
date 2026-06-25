@@ -27,6 +27,18 @@ typedef struct {
 } SpriteTypeDef;
 
 typedef struct {
+  SpriteTypeDef *items;
+  uint32_t len;
+  uint32_t capacity;
+} SpriteTypes;
+
+typedef struct {
+  RcSprite *items;
+  uint32_t len;
+  uint32_t capacity;
+} SpriteArray;
+
+typedef struct {
   uint8_t **walls;
   uint8_t **ceil;
   uint8_t **floor;
@@ -35,13 +47,8 @@ typedef struct {
   size_t height;
 
   StringArray tex_paths;
-
-  SpriteTypeDef *sprite_types;
-  uint32_t sprite_type_count;
-
-  RcSprite *sprites;
-  uint32_t sprite_count;
-
+  SpriteTypes sprite_types;
+  SpriteArray sprites;
 } MapLevelData;
 
 extern RcLevelVtbl maplevel_vtbl;
