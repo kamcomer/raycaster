@@ -19,7 +19,7 @@
 7 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 2 0 2 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 2 0 0 0 0 5 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
-7 2 0 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
+7 2 0 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 0 0 0 0 0 7
 7 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
@@ -91,8 +91,8 @@
 11: assets/textures/eagle.png
 
 [SPRITE_TYPES]
-1: assets/sprites/barrel.png
-2: assets/sprites/pillar.png
+1: assets/sprites/pillar.png
+2: assets/sprites/barrel.png
 3: assets/sprites/greenlight.png
 
 [SPRITES]
