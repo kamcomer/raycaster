@@ -209,6 +209,145 @@ void test_parse_textures(void)
   remove("test_tex.txt");
 }
 
+void test_parse_textures_with_ids(void)
+{
+  const char *map = "[MAP]\n"
+                    "1 1\n"
+                    "0\n"
+                    "[CEIL]\n"
+                    "0\n"
+                    "[FLOOR]\n"
+                    "0\n"
+                    "[TEXTURES]\n"
+                    "1: tex_one.png\n"
+                    "2: tex_two.png\n";
+  write_temp(map, "test_tex_id.txt");
+  RcLevel *w = rc_level_load_from_file("test_tex_id.txt");
+  TEST_ASSERT_NOT_NULL(w);
+
+  MapLevelData *data = (MapLevelData *)w->impl;
+  TEST_ASSERT_EQUAL_INT(2, data->tex_paths.len);
+  TEST_ASSERT_EQUAL_STRING("tex_one.png", data->tex_paths.strs[0]);
+  TEST_ASSERT_EQUAL_STRING("tex_two.png", data->tex_paths.strs[1]);
+
+  rc_level_destroy(w);
+  remove("test_tex_id.txt");
+}
+
+void test_parse_sprite_types_frame_count(void)
+{
+  const char *map = "[MAP]\n"
+                    "1 1\n"
+                    "0\n"
+                    "[CEIL]\n"
+                    "0\n"
+                    "[FLOOR]\n"
+                    "0\n"
+                    "[SPRITE_TYPES]\n"
+                    "1: static.png\n"
+                    "2: animated.png 4 0.25\n"
+                    "3: slow.png 2 1.5\n"
+                    "[SPRITES]\n"
+                    "1.0 2.0 1\n";
+  write_temp(map, "test_sp_fc.txt");
+  RcLevel *w = rc_level_load_from_file("test_sp_fc.txt");
+  TEST_ASSERT_NOT_NULL(w);
+
+  MapLevelData *data = (MapLevelData *)w->impl;
+  TEST_ASSERT_EQUAL_INT(3, data->sprite_types.len);
+
+  TEST_ASSERT_EQUAL_STRING("static.png", data->sprite_types.items[0].path);
+  TEST_ASSERT_EQUAL_INT(1, data->sprite_types.items[0].frame_count);
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, data->sprite_types.items[0].frame_delay);
+
+  TEST_ASSERT_EQUAL_STRING("animated.png", data->sprite_types.items[1].path);
+  TEST_ASSERT_EQUAL_INT(4, data->sprite_types.items[1].frame_count);
+  TEST_ASSERT_EQUAL_FLOAT(0.25f, data->sprite_types.items[1].frame_delay);
+
+  TEST_ASSERT_EQUAL_STRING("slow.png", data->sprite_types.items[2].path);
+  TEST_ASSERT_EQUAL_INT(2, data->sprite_types.items[2].frame_count);
+  TEST_ASSERT_EQUAL_FLOAT(1.5f, data->sprite_types.items[2].frame_delay);
+
+  rc_level_destroy(w);
+  remove("test_sp_fc.txt");
+}
+
+void test_parse_comments(void)
+{
+  const char *map = "# This is a file-level comment\n"
+                    "[MAP]\n"
+                    "2 1\n"
+                    "1 2\n"
+                    "# Comment between sections\n"
+                    "\n"
+                    "[TEXTURES]\n"
+                    "# Comment before texture\n"
+                    "tex.png\n"
+                    "\n"
+                    "# Another empty-line gap\n"
+                    "wall.png\n";
+  write_temp(map, "test_comments.txt");
+  RcLevel *w = rc_level_load_from_file("test_comments.txt");
+  TEST_ASSERT_NOT_NULL(w);
+  TEST_ASSERT_EQUAL_INT(2, rc_level_get_width(w));
+  TEST_ASSERT_EQUAL_INT(1, rc_level_get_height(w));
+  TEST_ASSERT_EQUAL_INT(1, rc_level_get_wall(w, 0, 0));
+  TEST_ASSERT_EQUAL_INT(2, rc_level_get_wall(w, 1, 0));
+
+  MapLevelData *data = (MapLevelData *)w->impl;
+  TEST_ASSERT_EQUAL_INT(2, data->tex_paths.len);
+  TEST_ASSERT_EQUAL_STRING("tex.png", data->tex_paths.strs[0]);
+  TEST_ASSERT_EQUAL_STRING("wall.png", data->tex_paths.strs[1]);
+
+  rc_level_destroy(w);
+  remove("test_comments.txt");
+}
+
+void test_parse_invalid_width_height(void)
+{
+  const char *map = "[MAP]\n"
+                    "abc def\n"
+                    "1 2\n";
+  write_temp(map, "test_invalid_wh.txt");
+  RcLevel *w = rc_level_load_from_file("test_invalid_wh.txt");
+  TEST_ASSERT_NULL(w);
+  remove("test_invalid_wh.txt");
+}
+
+void test_sprites_out_of_bounds_type(void)
+{
+  const char *map = "[MAP]\n"
+                    "1 1\n"
+                    "0\n"
+                    "[CEIL]\n"
+                    "0\n"
+                    "[FLOOR]\n"
+                    "0\n"
+                    "[SPRITE_TYPES]\n"
+                    "1: type_a.png\n"
+                    "[SPRITES]\n"
+                    "5.0 5.0 5\n";
+  write_temp(map, "test_spr_oob.txt");
+  RcLevel *w = rc_level_load_from_file("test_spr_oob.txt");
+  TEST_ASSERT_NULL(w);
+  remove("test_spr_oob.txt");
+}
+
+void test_create_empty_large(void)
+{
+  RcLevel *w = rc_level_create_empty(100, 200);
+  TEST_ASSERT_NOT_NULL(w);
+  TEST_ASSERT_EQUAL_INT(100, rc_level_get_width(w));
+  TEST_ASSERT_EQUAL_INT(200, rc_level_get_height(w));
+  for (int y = 0; y < 200; y++)
+    for (int x = 0; x < 100; x++) {
+      TEST_ASSERT_EQUAL_INT(0, rc_level_get_wall(w, x, y));
+      TEST_ASSERT_EQUAL_INT(0, rc_level_get_floor(w, x, y));
+      TEST_ASSERT_EQUAL_INT(0, rc_level_get_ceil(w, x, y));
+    }
+  rc_level_destroy(w);
+}
+
 void test_vtable_dispatch(void)
 {
   write_temp(VAL_MAP, "test_vtbl.txt");
@@ -237,6 +376,12 @@ int main(void)
   RUN_TEST(test_bounds_check);
   RUN_TEST(test_parse_sprites);
   RUN_TEST(test_parse_textures);
+  RUN_TEST(test_parse_textures_with_ids);
+  RUN_TEST(test_parse_sprite_types_frame_count);
+  RUN_TEST(test_parse_comments);
+  RUN_TEST(test_parse_invalid_width_height);
+  RUN_TEST(test_sprites_out_of_bounds_type);
+  RUN_TEST(test_create_empty_large);
   RUN_TEST(test_vtable_dispatch);
   return UNITY_END();
 }

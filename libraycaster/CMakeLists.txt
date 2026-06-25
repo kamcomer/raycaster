@@ -102,16 +102,24 @@ set_target_properties(raycaster PROPERTIES
 # Unit tests
 option(RAYCASTER_BUILD_TESTS "Build unit tests" OFF)
 
-if(RAYCASTER_BUILD_TESTS)
-    add_executable(test_map_level
-        tests/unity.c
-        tests/test_map_level.c
-    )
-    target_include_directories(test_map_level PRIVATE
+function(add_raycaster_test name)
+    add_executable(test_${name} tests/unity.c tests/test_${name}.c ${ARGN})
+    target_include_directories(test_${name} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
     )
-    target_link_libraries(test_map_level PRIVATE raycaster)
-    add_test(NAME map_level COMMAND test_map_level)
+    target_compile_definitions(test_${name} PRIVATE UNITY_INCLUDE_DOUBLE)
+    target_link_libraries(test_${name} PRIVATE raycaster)
+    add_test(NAME ${name} COMMAND test_${name})
+endfunction()
+
+if(RAYCASTER_BUILD_TESTS)
+    add_raycaster_test(map_level)
+    add_raycaster_test(vector)
+    add_raycaster_test(general)
+    add_raycaster_test(camera)
+    add_raycaster_test(actor)
+    add_raycaster_test(level)
+    add_raycaster_test(input)
 endif()
