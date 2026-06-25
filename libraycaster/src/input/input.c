@@ -11,6 +11,7 @@ RcInput *rc_input_create(RcInputBackend backend)
   default:
     break;
   }
+  return NULL;
 }
 
 // RcInput vtbl funcs
