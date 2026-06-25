@@ -2,25 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug with MSVC",
-      "type": "cppvsdbg", // Use the Microsoft C++ Debugger
+      "name": "CMake Target Debug",
+      "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/Debug/main.exe", // Path to your executable
-      "args": [], // Command-line arguments for your program
-      "cwd": "${workspaceFolder}", // Working directory
-      "console": "externalTerminal", // Use an external terminal for input/output
-      "stopAtEntry": false, // Set to true if you want to stop at the entry point
-      "environment": [] // Add environment variables if needed
-    },
-    {
-      "name": "LLDB (CodeLLDB)",
-      "type": "lldb", // This tells VSCode to use the CodeLLDB extension
-      "request": "launch",
-      "program": "${workspaceFolder}/build/Debug/main.exe", // Replace with your executable path
+      "program": "${command:cmake.launchTargetPath}",
       "args": [],
-      "cwd": "${workspaceFolder}",
-      "stopOnEntry": false,
-      "initCommands": []
+      "stopAtEntry": false,
+      "cwd": "${command:cmake.launchTargetDirectory}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb"
+      //   "setupCommands": [
+      //     {
+      //       "description": "Enable pretty-printing for gdb",
+      //       "text": "-enable-pretty-printing",
+      //       "ignoreFailures": true
+      //     }
+      //   ]
     }
   ]
 }
