@@ -46,6 +46,14 @@ static const char *SPR_MAP = "[MAP]\n"
                              "0\n"
                              "[FLOOR]\n"
                              "0\n"
+                             "[SPRITE_TYPES]\n"
+                             "1: type_a.png\n"
+                             "2: type_b.png\n"
+                             "3: type_c.png\n"
+                             "4: type_d.png\n"
+                             "5: type_e.png\n"
+                             "6: type_f.png\n"
+                             "7: type_g.png\n"
                              "[SPRITES]\n"
                              "1.0 2.0 3\n"
                              "4.0 5.0 6\n";
@@ -158,7 +166,7 @@ void test_parse_sprites(void)
   TEST_ASSERT_NOT_NULL(w);
 
   RcSprite *sprites;
-  int count;
+  uint32_t count;
   rc_level_get_sprites(w, &sprites, &count);
   TEST_ASSERT_EQUAL_INT(2, count);
   TEST_ASSERT_NOT_NULL(sprites);
@@ -172,6 +180,12 @@ void test_parse_sprites(void)
   TEST_ASSERT_EQUAL_DOUBLE(5.0, sprites[1].pos.y);
   TEST_ASSERT_EQUAL_INT(6, sprites[1].texture_id);
 
+  MapLevelData *data = (MapLevelData *)w->impl;
+  TEST_ASSERT_EQUAL_INT(7, data->sprite_type_count);
+  TEST_ASSERT_NOT_NULL(data->sprite_types);
+  TEST_ASSERT_EQUAL_STRING("type_a.png", data->sprite_types[0].path);
+  TEST_ASSERT_EQUAL_STRING("type_g.png", data->sprite_types[6].path);
+
   rc_level_destroy(w);
   remove("test_sprites.txt");
 }
@@ -183,13 +197,13 @@ void test_parse_textures(void)
   TEST_ASSERT_NOT_NULL(w);
 
   MapLevelData *data = (MapLevelData *)w->impl;
-  TEST_ASSERT_EQUAL_INT(3, data->texture_count);
-  TEST_ASSERT_NOT_NULL(data->texture_paths[0]);
-  TEST_ASSERT_NOT_NULL(data->texture_paths[1]);
-  TEST_ASSERT_NOT_NULL(data->texture_paths[2]);
-  TEST_ASSERT_EQUAL_STRING("tex_a.png", data->texture_paths[0]);
-  TEST_ASSERT_EQUAL_STRING("tex_b.png", data->texture_paths[1]);
-  TEST_ASSERT_EQUAL_STRING("tex_c.png", data->texture_paths[2]);
+  TEST_ASSERT_EQUAL_INT(3, data->tex_paths->len);
+  TEST_ASSERT_NOT_NULL(data->tex_paths->strs[0]);
+  TEST_ASSERT_NOT_NULL(data->tex_paths->strs[1]);
+  TEST_ASSERT_NOT_NULL(data->tex_paths->strs[2]);
+  TEST_ASSERT_EQUAL_STRING("tex_a.png", data->tex_paths->strs[0]);
+  TEST_ASSERT_EQUAL_STRING("tex_b.png", data->tex_paths->strs[1]);
+  TEST_ASSERT_EQUAL_STRING("tex_c.png", data->tex_paths->strs[2]);
 
   rc_level_destroy(w);
   remove("test_tex.txt");

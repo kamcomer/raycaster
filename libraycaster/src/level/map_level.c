@@ -1,8 +1,6 @@
 #include "internal/level/map_level_int.h"
-#include "internal/util/general.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 static int parse_grid_rows(FILE *file, uint8_t **grid, int width, int height)
@@ -19,42 +17,11 @@ static int parse_grid_rows(FILE *file, uint8_t **grid, int width, int height)
   return 0;
 }
 
-static int allocate_grids(MapLevelData *map)
+static int allocate_grid(uint8_t ***grid, int height)
 {
-  map->walls = malloc(map->height * sizeof(uint8_t *));
-  map->ceil = malloc(map->height * sizeof(uint8_t *));
-  map->floor = malloc(map->height * sizeof(uint8_t *));
-  if (!map->walls || !map->ceil || !map->floor) {
-    free(map->walls);
-    free(map->ceil);
-    free(map->floor);
-    map->walls = NULL;
-    map->ceil = NULL;
-    map->floor = NULL;
+  *grid = malloc(height * sizeof(uint8_t *));
+  if (!grid) {
     return -1;
-  }
-  return 0;
-}
-
-static int parse_grid_rows_from_buf(FILE *file, uint8_t **grid, const char *buf, int width,
-                                    int height)
-{
-  for (int j = 0; j < width; j++) {
-    char *end;
-    long v = strtol(buf, &end, 10);
-    if (end == buf)
-      return -1;
-    grid[0][j] = (uint8_t)v;
-    buf = (const char *)end;
-  }
-  for (int i = 1; i < height; i++) {
-    grid[i] = malloc(width * sizeof(uint8_t));
-    if (!grid[i])
-      return -1;
-    for (int j = 0; j < width; j++) {
-      if (fscanf(file, "%hhu", &grid[i][j]) != 1)
-        return -1;
-    }
   }
   return 0;
 }
@@ -63,7 +30,7 @@ static void destroy_data(MapLevelData *data)
 {
   if (!data)
     return;
-  for (int i = 0; i < data->height; i++) {
+  for (size_t i = 0; i < data->height; i++) {
     free(data->walls ? data->walls[i] : NULL);
     free(data->ceil ? data->ceil[i] : NULL);
     free(data->floor ? data->floor[i] : NULL);
@@ -72,11 +39,55 @@ static void destroy_data(MapLevelData *data)
   free(data->ceil);
   free(data->floor);
   free(data->sprites);
-  for (int i = 0; i < data->texture_count; i++)
-    free(data->texture_paths[i]);
-  for (int i = 0; i < data->sprite_type_count; i++)
-    free(data->sprite_type_paths[i]);
+  string_array_destroy(data->tex_paths);
+
+  for (uint32_t i = 0; i < data->sprite_type_count; i++)
+    free(data->sprite_types[i].path);
+  free(data->sprite_types);
   free(data);
+}
+
+static int parse_map_section(FILE *file, uint8_t ***grid, int width, int height)
+{
+  if (allocate_grid(grid, height) != 0) {
+    return -1;
+  }
+  if (parse_grid_rows(file, *grid, width, height) != 0) {
+    return -1;
+  }
+  return 0;
+}
+
+static int parse_texture_path(char *buf, StringArray *paths)
+{
+  if (paths->len == paths->max_len) {
+    char **old_paths = paths->strs;
+    paths = duplicate_string_array(paths, paths->len + 10);
+
+    // Free old strs
+    for (size_t i = 0; i < paths->len; i++) {
+      free(old_paths[i]);
+    }
+    free(old_paths);
+    if (paths->strs == NULL) {
+      return -1;
+    }
+
+    paths->max_len += 10;
+  }
+
+  const char *path = buf;
+  char *colon = strchr(buf, ':');
+  if (colon != NULL && colon[1] == ' ')
+    path = colon + 2;
+  paths->strs[paths->len] = malloc(strlen(path) + 1);
+  if (!paths->strs[paths->len])
+    return -1;
+
+  strcpy(paths->strs[paths->len], path);
+  paths->len++;
+
+  return 0;
 }
 
 RcLevel *rc_level_load_from_file(const char *file_path)
@@ -85,6 +96,12 @@ RcLevel *rc_level_load_from_file(const char *file_path)
   if (!data)
     return NULL;
 
+  data->tex_paths = string_array_create(DEFAULT_NUM_ASSETS);
+  if (!data->tex_paths) {
+    destroy_data(data);
+    return NULL;
+  }
+
   FILE *file = fopen(file_path, "r");
   if (!file) {
     free(data);
@@ -92,7 +109,7 @@ RcLevel *rc_level_load_from_file(const char *file_path)
   }
 
   char buf[1024];
-  MapSection section = MAP_SECTION_NONE;
+  LevelFileSection section = MAP_SECTION_NONE;
   int sprite_capacity = 4;
 
   while (fgets(buf, sizeof(buf), file)) {
@@ -102,15 +119,12 @@ RcLevel *rc_level_load_from_file(const char *file_path)
 
     if (strcmp(buf, "[MAP]") == 0) {
       section = MAP_SECTION_MAP;
-      continue;
     }
     if (strcmp(buf, "[CEIL]") == 0) {
       section = MAP_SECTION_CEIL;
-      continue;
     }
     if (strcmp(buf, "[FLOOR]") == 0) {
       section = MAP_SECTION_FLOOR;
-      continue;
     }
     if (strcmp(buf, "[TEXTURES]") == 0) {
       section = MAP_SECTION_TEXTURES;
@@ -118,28 +132,21 @@ RcLevel *rc_level_load_from_file(const char *file_path)
     }
     if (strcmp(buf, "[SPRITE_TYPES]") == 0) {
       section = MAP_SECTION_SPRITE_TYPES;
-      continue;
     }
     if (strcmp(buf, "[SPRITES]") == 0) {
       section = MAP_SECTION_SPRITES;
       data->sprites = malloc(sprite_capacity * sizeof(RcSprite));
       data->sprite_count = 0;
-      continue;
     }
 
     switch (section) {
     case MAP_SECTION_MAP:
-      if (sscanf(buf, "%d %d", &data->width, &data->height) != 2) {
+      if (fscanf(file, "%d %d", (int *)&data->width, (int *)&data->height) != 2) {
         fclose(file);
         destroy_data(data);
         return NULL;
       }
-      if (allocate_grids(data) != 0) {
-        fclose(file);
-        destroy_data(data);
-        return NULL;
-      }
-      if (parse_grid_rows(file, data->walls, data->width, data->height) != 0) {
+      if (parse_map_section(file, &data->walls, data->width, data->height) != 0) {
         fclose(file);
         destroy_data(data);
         return NULL;
@@ -147,19 +154,7 @@ RcLevel *rc_level_load_from_file(const char *file_path)
       section = MAP_SECTION_NONE;
       break;
     case MAP_SECTION_CEIL:
-      data->ceil = malloc(data->height * sizeof(uint8_t *));
-      if (!data->ceil) {
-        fclose(file);
-        destroy_data(data);
-        return NULL;
-      }
-      data->ceil[0] = malloc(data->width * sizeof(uint8_t));
-      if (!data->ceil[0]) {
-        fclose(file);
-        destroy_data(data);
-        return NULL;
-      }
-      if (parse_grid_rows_from_buf(file, data->ceil, buf, data->width, data->height) != 0) {
+      if (parse_map_section(file, &data->ceil, data->width, data->height) != 0) {
         fclose(file);
         destroy_data(data);
         return NULL;
@@ -167,20 +162,7 @@ RcLevel *rc_level_load_from_file(const char *file_path)
       section = MAP_SECTION_NONE;
       break;
     case MAP_SECTION_FLOOR:
-      data->floor = malloc(data->height * sizeof(uint8_t *));
-      if (!data->floor) {
-        fclose(file);
-        destroy_data(data);
-        return NULL;
-      }
-      data->floor[0] = malloc(data->width * sizeof(uint8_t));
-      if (!data->floor[0]) {
-
-        fclose(file);
-        destroy_data(data);
-        return NULL;
-      }
-      if (parse_grid_rows_from_buf(file, data->floor, buf, data->width, data->height) != 0) {
+      if (parse_map_section(file, &data->floor, data->width, data->height) != 0) {
         fclose(file);
         destroy_data(data);
         return NULL;
@@ -188,51 +170,44 @@ RcLevel *rc_level_load_from_file(const char *file_path)
       section = MAP_SECTION_NONE;
       break;
     case MAP_SECTION_TEXTURES: {
-      if (data->texture_count < MAX_TEXTURE_PATHS) {
-        char *path = buf;
-        char *colon = strchr(buf, ':');
-        if (colon != NULL && colon[1] == ' ')
-          path = colon + 2;
-        data->texture_paths[data->texture_count] = malloc(strlen(path) + 1);
-        if (data->texture_paths[data->texture_count]) {
-          strcpy(data->texture_paths[data->texture_count], path);
-          data->texture_count++;
-        }
+      if (parse_texture_path(buf, data->tex_paths) != 0) {
+        fclose(file);
+        destroy_data(data);
+        return NULL;
       }
       break;
     }
     case MAP_SECTION_SPRITE_TYPES: {
-      if (data->sprite_type_count < MAX_SPRITE_TYPES) {
-        char *colon = strchr(buf, ':');
-        if (colon != NULL && colon[1] == ' ') {
-          int key_len = colon - buf;
-          if (key_len >= MAX_SPRITE_TYPE_KEY_LEN)
-            key_len = MAX_SPRITE_TYPE_KEY_LEN - 1;
-          strncpy(data->sprite_type_keys[data->sprite_type_count], buf, key_len);
-          data->sprite_type_keys[data->sprite_type_count][key_len] = '\0';
-          const char *path = colon + 2;
-          data->sprite_type_paths[data->sprite_type_count] = malloc(strlen(path) + 1);
-          if (data->sprite_type_paths[data->sprite_type_count]) {
-            strcpy(data->sprite_type_paths[data->sprite_type_count], path);
-            data->sprite_type_count++;
-          }
+      char *colon = strchr(buf, ':');
+      if (colon != NULL && colon[1] == ' ') {
+        const char *rest = colon + 2;
+        char path[1024];
+        int frame_count = 1;
+        float frame_delay = 0.0f;
+        int n = sscanf(rest, "%1023s %d %f", path, &frame_count, &frame_delay);
+        if (n >= 1) {
+          if (frame_count < 1) frame_count = 1;
+          uint32_t idx = data->sprite_type_count++;
+          SpriteTypeDef *tmp = realloc(data->sprite_types, data->sprite_type_count * sizeof(SpriteTypeDef));
+          if (!tmp) break;
+          data->sprite_types = tmp;
+          data->sprite_types[idx].path = malloc(strlen(path) + 1);
+          if (!data->sprite_types[idx].path) break;
+          strcpy(data->sprite_types[idx].path, path);
+          data->sprite_types[idx].frame_count = frame_count;
+          data->sprite_types[idx].frame_delay = frame_delay;
         }
       }
       break;
     }
     case MAP_SECTION_SPRITES: {
       RcSprite s;
-      char key[MAX_SPRITE_TYPE_KEY_LEN];
-      if (sscanf(buf, "%lf %lf %63s", &s.pos.x, &s.pos.y, key) == 3) {
-        s.texture_id = -1;
-        for (int i = 0; i < data->sprite_type_count; i++) {
-          if (strcmp(data->sprite_type_keys[i], key) == 0) {
-            s.texture_id = i;
-            break;
-          }
-        }
-        if (s.texture_id < 0)
-          s.texture_id = 0;
+      int type_id;
+      if (sscanf(buf, "%lf %lf %d", &s.pos.x, &s.pos.y, &type_id) == 3) {
+        if (type_id < 0) type_id = 0;
+        if (type_id >= data->sprite_type_count && data->sprite_type_count > 0)
+          type_id = data->sprite_type_count - 1;
+        s.texture_id = type_id;
         s.is_dynamic = false;
         s.pos.mag = 0;
         s.pos.angle = 0;
@@ -262,7 +237,7 @@ RcLevel *rc_level_load_from_file(const char *file_path)
   return world;
 }
 
-RcLevel *rc_level_create_empty(int width, int height)
+RcLevel *rc_level_create_empty(uint32_t width, uint32_t height)
 {
   MapLevelData *data = calloc(1, sizeof(MapLevelData));
   if (!data)
@@ -304,49 +279,49 @@ RcLevel *rc_level_create_empty(int width, int height)
 }
 
 // RcLevel Vtbl implementation
-static int maplevel_width(RcLevel *w)
+static uint32_t maplevel_width(RcLevel *w)
 {
   MapLevelData *data = (MapLevelData *)w->impl;
   return data->width;
 }
 
-static int maplevel_height(RcLevel *w)
+static uint32_t maplevel_height(RcLevel *w)
 {
   MapLevelData *data = (MapLevelData *)w->impl;
   return data->height;
 }
 
-static int maplevel_wall(RcLevel *w, int x, int y)
+static uint32_t maplevel_wall(RcLevel *w, int x, int y)
 {
   MapLevelData *data = (MapLevelData *)w->impl;
-  if (x < 0 || x >= data->width || y < 0 || y >= data->height)
+  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height)
     return 0;
   return data->walls[y][x];
 }
 
-static int maplevel_floor(RcLevel *w, int x, int y)
+static uint32_t maplevel_floor(RcLevel *w, int x, int y)
 {
   MapLevelData *data = (MapLevelData *)w->impl;
-  if (x < 0 || x >= data->width || y < 0 || y >= data->height)
+  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height)
     return 0;
   return data->floor[y][x];
 }
 
-static int maplevel_ceil(RcLevel *w, int x, int y)
+static uint32_t maplevel_ceil(RcLevel *w, int x, int y)
 {
   MapLevelData *data = (MapLevelData *)w->impl;
-  if (x < 0 || x >= data->width || y < 0 || y >= data->height)
+  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height)
     return 0;
   return data->ceil[y][x];
 }
 
-static int maplevel_unit_size(RcLevel *w)
+static uint32_t maplevel_unit_size(RcLevel *w)
 {
   (void)w;
   return DEFAULT_MAP_UNIT_SIZE;
 }
 
-static void maplevel_sprites(RcLevel *w, RcSprite **out, int *count)
+static void maplevel_sprites(RcLevel *w, RcSprite **out, uint32_t *count)
 {
   MapLevelData *data = (MapLevelData *)w->impl;
   *out = data->sprites;
@@ -368,7 +343,7 @@ static void maplevel_destroy(RcLevel *w)
   if (!data)
     return;
 
-  for (int i = 0; i < data->height; i++) {
+  for (size_t i = 0; i < data->height; i++) {
     free(data->walls[i]);
     free(data->ceil[i]);
     free(data->floor[i]);
@@ -376,10 +351,11 @@ static void maplevel_destroy(RcLevel *w)
   free(data->walls);
   free(data->ceil);
   free(data->floor);
-  for (int i = 0; i < data->texture_count; i++)
-    free(data->texture_paths[i]);
-  for (int i = 0; i < data->sprite_type_count; i++)
-    free(data->sprite_type_paths[i]);
+  string_array_destroy(data->tex_paths);
+
+  for (uint32_t i = 0; i < data->sprite_type_count; i++)
+    free(data->sprite_types[i].path);
+  free(data->sprite_types);
   free(data->sprites);
   free(data);
   free(w);

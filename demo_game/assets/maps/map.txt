@@ -22,8 +22,8 @@
 7 2 0 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7
 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
+7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
 
 [CEIL]
 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
@@ -86,13 +86,19 @@
 6: assets/textures/purplestone.png
 7: assets/textures/redbrick.png
 8: assets/textures/wood.png
+9: assets/textures/bluestone.png
+10: assets/textures/colorstone.png
+11: assets/textures/eagle.png
 
 [SPRITE_TYPES]
-barrel: assets/sprites/barrel.png
-pillar: assets/sprites/pillar.png
-greenlight: assets/sprites/greenlight.png
+1: assets/sprites/barrel.png
+2: assets/sprites/pillar.png
+3: assets/sprites/greenlight.png
 
 [SPRITES]
-12 11 barrel
-13.982271634615385 11.952223557692308 pillar
-10 12 greenlight
+12 11 0
+13.982271634615385 11.952223557692308 1
+10 12 2
+18.5 12.5 0
+11.5 14.5 0
+3.5 12.5 0
