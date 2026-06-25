@@ -38,7 +38,7 @@ static int init_sdl(void)
 
 static void shutdown_sdl(void) { SDL_Quit(); }
 
-static uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr_height)
+static uint32_t *load_image_data(const char *file_path, uint32_t *ptr_width, uint32_t *ptr_height)
 {
   SDL_Surface *texture_surface = IMG_Load(file_path);
   if (!texture_surface) {
@@ -46,8 +46,8 @@ static uint32_t *load_image_data(const char *file_path, int *ptr_width, int *ptr
     return NULL;
   }
 
-  *ptr_width = texture_surface->w;
-  *ptr_height = texture_surface->h;
+  *ptr_width = (uint32_t)texture_surface->w;
+  *ptr_height = (uint32_t)texture_surface->h;
 
   SDL_Surface *formatted_surface = SDL_ConvertSurface(texture_surface, SDL_PIXELFORMAT_RGBA8888);
 
@@ -83,7 +83,7 @@ static RcTextureData *create_textures(void)
   if (!textures)
     return NULL;
 
-  int width, height;
+  uint32_t width, height;
 
   uint32_t *t0 = load_image_data("assets/textures/bluestone.png", &width, &height);
   uint32_t *t1 = load_image_data("assets/textures/colorstone.png", &width, &height);
@@ -530,7 +530,7 @@ static void update(RcEngine *e)
   if (rc_input_get_key_down(in, RC_KEY_W)) {
     double new_x = cam->pos.x + cam->dir.x * move_speed;
     double new_y = cam->pos.y + cam->dir.y * move_speed;
-    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
+    uint32_t wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;
@@ -539,7 +539,7 @@ static void update(RcEngine *e)
   if (rc_input_get_key_down(in, RC_KEY_S)) {
     double new_x = cam->pos.x - cam->dir.x * move_speed;
     double new_y = cam->pos.y - cam->dir.y * move_speed;
-    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
+    uint32_t wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;
@@ -548,7 +548,7 @@ static void update(RcEngine *e)
   if (rc_input_get_key_down(in, RC_KEY_A)) {
     double new_x = cam->pos.x - cam->plane.x * move_speed;
     double new_y = cam->pos.y - cam->plane.y * move_speed;
-    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
+    uint32_t wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;
@@ -557,7 +557,7 @@ static void update(RcEngine *e)
   if (rc_input_get_key_down(in, RC_KEY_D)) {
     double new_x = cam->pos.x + cam->plane.x * move_speed;
     double new_y = cam->pos.y + cam->plane.y * move_speed;
-    int wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
+    uint32_t wall = rc_level_get_wall(world, (int)new_x, (int)new_y);
     if (wall == 0) {
       cam->pos.x = new_x;
       cam->pos.y = new_y;

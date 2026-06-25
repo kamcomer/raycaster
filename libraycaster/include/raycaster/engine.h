@@ -7,12 +7,12 @@
 typedef struct RcEngine RcEngine;
 typedef struct RcEngineConfig {
   const char *title;
-  int width;
-  int height;
-  int target_fps;
+  uint32_t width;
+  uint32_t height;
+  uint32_t target_fps;
   bool show_fps;
   const char *map_file;
-  int strip_count;
+  uint32_t strip_count;
   RcInputBackend input_backend;
   bool use_gpu;
 } RcEngineConfig;

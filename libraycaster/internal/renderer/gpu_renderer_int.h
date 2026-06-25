@@ -18,7 +18,7 @@ typedef struct RcGPURenderer RcGPURenderer;
 
 typedef struct {
   float x, y;
-  int texture;
+  uint32_t texture;
 } SpriteData;
 
 typedef struct {
@@ -43,10 +43,10 @@ struct RcGPURenderer {
   uint32_t depth_height;
 
   SDL_GPUTexture *wall_texture_array;
-  int wall_texture_count;
+  uint32_t wall_texture_count;
   SDL_GPUTexture *floor_texture_array;
   SDL_GPUTexture *sprite_textures[MAX_SPRITE_TEXTURES];
-  int sprite_texture_count;
+  uint32_t sprite_texture_count;
   SDL_GPUTexture *depth_texture;
 
   SDL_GPUBuffer *wall_vertex_buffer;
@@ -86,16 +86,16 @@ struct RcGPURenderer {
 RcGPURenderer *rc_gpu_renderer_create(SDL_Window *window);
 void gpu_renderer_destroy(RcGPURenderer *r);
 
-int gpu_renderer_upload_textures(RcGPURenderer *r, uint32_t *textures[], int count);
+int gpu_renderer_upload_textures(RcGPURenderer *r, uint32_t *textures[], uint32_t count);
 int gpu_renderer_set_floor_textures(RcGPURenderer *r, uint32_t *floor_pixels,
                                     uint32_t *ceiling_pixels);
-int gpu_renderer_set_sprite_texture(RcGPURenderer *r, int index, uint32_t *pixels);
+int gpu_renderer_set_sprite_texture(RcGPURenderer *r, uint32_t index, uint32_t *pixels);
 
 void gpu_renderer_begin_frame(RcGPURenderer *r);
 void gpu_renderer_end_frame(RcGPURenderer *r);
 
 void gpu_renderer_draw_scene(RcGPURenderer *r, float cam_x, float cam_y, float dir_x, float dir_y,
-                             float plane_x, float plane_y, int screen_width, int screen_height,
+                             float plane_x, float plane_y, uint32_t screen_width, uint32_t screen_height,
                              int *map, int map_width, int map_height, void *intersects,
                              int num_intersects, void *sprites, int num_sprites);
 

@@ -24,7 +24,7 @@ struct RcEngine {
   uint32_t current_time;
   float accumulator;
 
-  int frame_count;
+  uint32_t frame_count;
   float fps;
   uint32_t fps_timer;
 

@@ -23,21 +23,21 @@ typedef struct
 {
     int x;
     int y;
-    int w;
-    int h;
+    uint32_t w;
+    uint32_t h;
 } RcRect;
 
 typedef struct
 {
-    int width;
-    int height;
+    uint32_t width;
+    uint32_t height;
 } RcDimensions;
 
 typedef struct
 {
     uint32_t *pixels;
-    int height;
-    int width;
+    uint32_t height;
+    uint32_t width;
 } RcTextureData;
 
 #endif // RAYCASTER_TYPES_H

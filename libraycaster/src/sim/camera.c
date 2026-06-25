@@ -5,7 +5,7 @@
 
 #define RC_DEFAULT_FOV 60.0f
 
-RcCamera *rc_camera_create(int width, int height)
+RcCamera *rc_camera_create(uint32_t width, uint32_t height)
 {
     RcCamera *cam = calloc(1, sizeof(RcCamera));
     if (!cam)
@@ -74,7 +74,7 @@ void rc_camera_rotate(RcCamera *cam, float angle)
     cam->plane.y = new_plane_y;
 }
 
-void rc_camera_get_view_dimensions(RcCamera *cam, int *width, int *height)
+void rc_camera_get_view_dimensions(RcCamera *cam, uint32_t *width, uint32_t *height)
 {
     if (width) *width = cam->width;
     if (height) *height = cam->height;

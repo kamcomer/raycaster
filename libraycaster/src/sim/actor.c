@@ -24,7 +24,7 @@ RcVector rc_actor_get_direction(RcActor *a)
     return v;
 }
 
-int rc_actor_get_texture(RcActor *a)
+uint32_t rc_actor_get_texture(RcActor *a)
 {
     if (a && a->vtbl && a->vtbl->get_texture)
         return a->vtbl->get_texture(a);

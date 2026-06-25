@@ -97,7 +97,7 @@ static void render_sprites(RcEngine *e, double *z_buffer)
   int h = e->config.height;
 
   RcSprite *sprites = NULL;
-  int sprite_count = 0;
+  uint32_t sprite_count = 0;
   rc_level_get_sprites(world, &sprites, &sprite_count);
 
   if (sprite_count == 0 || !sprites)
@@ -106,14 +106,14 @@ static void render_sprites(RcEngine *e, double *z_buffer)
   double *sprite_dist = malloc(sizeof(double) * sprite_count);
   int *sprite_order = malloc(sizeof(int) * sprite_count);
 
-  for (int i = 0; i < sprite_count; i++) {
+  for (uint32_t i = 0; i < sprite_count; i++) {
     sprite_order[i] = i;
     sprite_dist[i] = ((cam->pos.x - sprites[i].pos.x) * (cam->pos.x - sprites[i].pos.x) +
                       (cam->pos.y - sprites[i].pos.y) * (cam->pos.y - sprites[i].pos.y));
   }
 
-  for (int i = 0; i < sprite_count - 1; i++) {
-    for (int j = i + 1; j < sprite_count; j++) {
+  for (uint32_t i = 0; i < sprite_count - 1; i++) {
+    for (uint32_t j = i + 1; j < sprite_count; j++) {
       if (sprite_dist[j] > sprite_dist[i]) {
         double temp_dist = sprite_dist[i];
         sprite_dist[i] = sprite_dist[j];
@@ -134,7 +134,7 @@ static void render_sprites(RcEngine *e, double *z_buffer)
   memset(pixels, 0, pitch * h);
   uint32_t *pixel_data = (uint32_t *)pixels;
 
-  for (int i = 0; i < sprite_count; i++) {
+  for (uint32_t i = 0; i < sprite_count; i++) {
     RcSprite *sprite = &sprites[sprite_order[i]];
 
     double sprite_x = sprite->pos.x - cam->pos.x;
@@ -276,8 +276,8 @@ static void render_walls(RcEngine *e, double *z_buffer)
     if (draw_end >= h)
       draw_end = h - 1;
 
-    int wall_type = rc_level_get_wall(world, map_x, map_y);
-    int tex_num = wall_type - 1;
+    uint32_t wall_type = rc_level_get_wall(world, map_x, map_y);
+    int tex_num = (int)wall_type - 1;
 
     double wall_x;
     if (side == 0)

@@ -11,13 +11,13 @@ struct RcLevel {
 };
 
 struct RcLevelVtbl {
-  int (*width)(RcLevel *w);
-  int (*height)(RcLevel *w);
-  int (*wall)(RcLevel *w, int x, int y);
-  int (*floor)(RcLevel *w, int x, int y);
-  int (*ceil)(RcLevel *w, int x, int y);
-  int (*unit_size)(RcLevel *w);
-  void (*sprites)(RcLevel *w, RcSprite **out, int *count);
+  uint32_t (*width)(RcLevel *w);
+  uint32_t (*height)(RcLevel *w);
+  uint32_t (*wall)(RcLevel *w, int x, int y);
+  uint32_t (*floor)(RcLevel *w, int x, int y);
+  uint32_t (*ceil)(RcLevel *w, int x, int y);
+  uint32_t (*unit_size)(RcLevel *w);
+  void (*sprites)(RcLevel *w, RcSprite **out, uint32_t *count);
   void (*update)(RcLevel *w, float dt);
   void (*destroy)(RcLevel *w);
 };
