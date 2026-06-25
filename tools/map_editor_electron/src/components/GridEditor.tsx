@@ -68,8 +68,8 @@ export default function GridEditor() {
     (r: number, c: number) => {
       if (r < 0 || r >= map.height || c < 0 || c >= map.width) return
       if (activeTool === 'sprite') {
-        const st = spriteTypes[selectedSpriteType]
-        if (st) addSprite({ x: c + 0.5, y: r + 0.5, type: st.key })
+        if (selectedSpriteType >= 0 && selectedSpriteType < spriteTypes.length)
+          addSprite({ x: c + 0.5, y: r + 0.5, type: selectedSpriteType })
         return
       }
       const texId = activeTool === 'erase' ? 0 : selectedTexture
@@ -210,7 +210,7 @@ export default function GridEditor() {
       for (const sprite of map.sprites) {
         const sx = sprite.x * cellSize
         const sy = sprite.y * cellSize
-        const st = spriteTypes.find((s) => s.key === sprite.type)
+        const st = spriteTypes[sprite.type]
         if (st) {
           try {
             const img = getCachedTexture(st.dataUrl)

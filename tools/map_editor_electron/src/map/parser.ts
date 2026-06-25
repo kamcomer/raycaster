@@ -130,10 +130,13 @@ export function parseMap(text: string): MapData {
       case 'sprite_types': {
         const colon = trimmed.indexOf(': ')
         if (colon > 0) {
-          const key = trimmed.slice(0, colon)
-          const path = trimmed.slice(colon + 2)
-          if (key && path) {
-            map.spriteTypes.push({ key, path })
+          const rest = trimmed.slice(colon + 2)
+          const parts = rest.split(/\s+/)
+          const path = parts[0]
+          const frameCount = parts.length >= 3 ? parseInt(parts[1], 10) || 1 : 1
+          const frameDelay = parts.length >= 3 ? parseFloat(parts[2]) || 0 : 0
+          if (path) {
+            map.spriteTypes.push({ path, frameCount, frameDelay })
           }
         }
         break
@@ -143,8 +146,9 @@ export function parseMap(text: string): MapData {
         if (parts.length >= 3) {
           const x = parseFloat(parts[0])
           const y = parseFloat(parts[1])
-          if (!isNaN(x) && !isNaN(y)) {
-            map.sprites.push({ x, y, type: parts[2] })
+          const type = parseInt(parts[2], 10)
+          if (!isNaN(x) && !isNaN(y) && !isNaN(type)) {
+            map.sprites.push({ x, y, type })
           }
         }
         break
@@ -191,9 +195,13 @@ export function serializeMap(data: MapData): string {
   if (data.spriteTypes.length > 0) {
     lines.push('')
     lines.push('[SPRITE_TYPES]')
-    for (const st of data.spriteTypes) {
-      lines.push(`${st.key}: ${st.path}`)
-    }
+    data.spriteTypes.forEach((st, i) => {
+      lines.push(
+        st.frameCount > 1
+          ? `${i + 1}: ${st.path} ${st.frameCount} ${st.frameDelay}`
+          : `${i + 1}: ${st.path}`
+      )
+    })
   }
 
   if (data.sprites.length > 0) {

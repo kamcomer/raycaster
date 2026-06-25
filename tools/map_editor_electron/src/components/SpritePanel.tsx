@@ -23,7 +23,7 @@ export default function SpritePanel() {
       <div className="flex-1 overflow-y-auto scrollbar-thin px-3 pb-2">
         <div className="flex flex-wrap gap-2">
           {sprites.map((sprite, i) => {
-            const st = spriteTypes.find((s) => s.key === sprite.type)
+            const st = spriteTypes[sprite.type]
             const isSelected = i === selectedSpriteIndex
             return (
               <div
@@ -40,11 +40,11 @@ export default function SpritePanel() {
                   <img
                     src={st.dataUrl}
                     className="w-4 h-4 rounded object-cover"
-                    alt={sprite.type}
+                    alt={`sprite ${sprite.type}`}
                   />
                 )}
                 <span>
-                  ({sprite.x.toFixed(1)}, {sprite.y.toFixed(1)}) {sprite.type}
+                  ({sprite.x.toFixed(1)}, {sprite.y.toFixed(1)}) [{sprite.type}]
                 </span>
                 <button
                   onClick={(e) => {

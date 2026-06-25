@@ -9,8 +9,9 @@ interface TextureEntry {
 }
 
 interface SpriteTypeEntry {
-  key: string
   path: string
+  frameCount: number
+  frameDelay: number
   dataUrl: string
 }
 
@@ -33,13 +34,13 @@ interface MapStore {
   addTexture: (path: string, dataUrl: string) => void
   importTexture: (path: string, dataUrl: string) => void
   removeTexture: (id: number) => void
-  importSpriteType: (key: string, path: string, dataUrl: string) => void
+  importSpriteType: (path: string, dataUrl: string, frameCount?: number, frameDelay?: number) => void
   selectSprite: (index: number) => void
   addSprite: (sprite: Sprite) => void
   removeSprite: (index: number) => void
   updateSprite: (index: number, partial: Partial<Sprite>) => void
   populateTextures: (entries: { path: string; dataUrl: string }[]) => void
-  populateSpriteTypes: (entries: { key: string; path: string; dataUrl: string }[]) => void
+  populateSpriteTypes: (entries: { path: string; frameCount: number; frameDelay: number; dataUrl: string }[]) => void
   loadMap: (data: MapData) => void
   newMap: (width: number, height: number) => void
   setFilePath: (path: string | null) => void
@@ -119,15 +120,15 @@ export const useMapStore = create<MapStore>()((set) => ({
       },
     })),
 
-  importSpriteType: (key, path, dataUrl) =>
+  importSpriteType: (path, dataUrl, frameCount = 1, frameDelay = 0) =>
     set((state) => {
-      if (state.spriteTypes.some((st) => st.key === key)) return state
-      if (state.map.spriteTypes.some((st) => st.key === key)) return state
+      if (state.spriteTypes.some((st) => st.path === path)) return state
+      if (state.map.spriteTypes.some((st) => st.path === path)) return state
       return {
-        spriteTypes: [...state.spriteTypes, { key, path, dataUrl }],
+        spriteTypes: [...state.spriteTypes, { path, frameCount, frameDelay, dataUrl }],
         map: {
           ...state.map,
-          spriteTypes: [...state.map.spriteTypes, { key, path }],
+          spriteTypes: [...state.map.spriteTypes, { path, frameCount, frameDelay }],
         },
       }
     }),
@@ -135,8 +136,9 @@ export const useMapStore = create<MapStore>()((set) => ({
   populateSpriteTypes: (entries) =>
     set({
       spriteTypes: entries.map((e) => ({
-        key: e.key,
         path: e.path,
+        frameCount: e.frameCount,
+        frameDelay: e.frameDelay,
         dataUrl: e.dataUrl,
       })),
     }),

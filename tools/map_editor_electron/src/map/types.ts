@@ -1,6 +1,7 @@
 export interface SpriteTypeDef {
-  key: string
   path: string
+  frameCount: number
+  frameDelay: number
 }
 
 export interface MapData {
@@ -17,7 +18,7 @@ export interface MapData {
 export interface Sprite {
   x: number
   y: number
-  type: string
+  type: number
 }
 
 export type Layer = 'walls' | 'floor' | 'ceiling'

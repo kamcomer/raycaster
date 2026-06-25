@@ -53,14 +53,14 @@ export default function Toolbar() {
     if (textureEntries.length > 0) {
       useMapStore.getState().populateTextures(textureEntries)
     }
-    const spriteTypeEntries: { key: string; path: string; dataUrl: string }[] = []
+    const spriteTypeEntries: { path: string; frameCount: number; frameDelay: number; dataUrl: string }[] = []
     for (const st of data.spriteTypes) {
       try {
         const absPath = await api.resolveFromRoot(path, st.path)
         const tex = await api.readTexture(absPath)
-        spriteTypeEntries.push({ key: st.key, path: st.path, dataUrl: tex.data })
+        spriteTypeEntries.push({ path: st.path, frameCount: st.frameCount, frameDelay: st.frameDelay, dataUrl: tex.data })
       } catch (err) {
-        console.warn('could not load sprite type:', st.key, err)
+        console.warn('could not load sprite type:', st.path, err)
       }
     }
     if (spriteTypeEntries.length > 0) {
@@ -156,10 +156,9 @@ export default function Toolbar() {
       if (mapFile) {
         relPath = await api.relativeToRoot(mapFile, absolutePath)
       }
-      const key = absolutePath.split('/').pop()?.replace(/\.\w+$/, '') || 'sprite'
       const tex = await api.readTexture(absolutePath)
       await preloadTexture(tex.data)
-      importSpriteType(key, relPath, tex.data)
+      importSpriteType(relPath, tex.data)
     } catch (err) {
       console.error('failed to import sprite type:', err)
     }
@@ -181,8 +180,7 @@ export default function Toolbar() {
           await preloadTexture(tex.data)
           let relPath = file.path.split('/').pop() || file.path
           if (mapFile) relPath = await api.relativeToRoot(mapFile, file.path)
-          const key = file.name.replace(/\.\w+$/, '')
-          importSpriteType(key, relPath, tex.data)
+          importSpriteType(relPath, tex.data)
         } catch (err) {
           console.warn('skipping file:', file.name, err)
         }

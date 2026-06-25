@@ -26,22 +26,27 @@ export default function TexturePalette() {
             <div className="grid grid-cols-2 gap-1.5">
               {spriteTypes.map((st, i) => (
                 <button
-                  key={st.key}
+                  key={i}
                   onClick={() => setSelectedSpriteType(i)}
                   className={`relative aspect-square rounded overflow-hidden border-2 transition-colors ${
                     selectedSpriteType === i
                       ? 'border-[#e94560]'
                       : 'border-transparent hover:border-gray-600'
                   }`}
-                  title={st.key}
+                  title={st.path.split('/').pop() || ''}
                 >
                   <img
                     src={st.dataUrl}
-                    alt={st.key}
+                    alt={st.path}
                     className="w-full h-full object-cover"
                   />
+                  {st.frameCount > 1 && (
+                    <span className="absolute top-0.5 right-0.5 text-[9px] bg-black/70 text-yellow-400 px-1 rounded leading-tight">
+                      {st.frameCount}f
+                    </span>
+                  )}
                   <span className="absolute bottom-0.5 left-1 right-1 text-[10px] bg-black/60 px-1 rounded text-center truncate">
-                    {st.key}
+                    {i}
                   </span>
                 </button>
               ))}
