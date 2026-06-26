@@ -9,20 +9,26 @@ int main(int argc, char *argv[])
 
   RcEngineConfig config;
   rc_engine_config_set_defaults(&config);
-  config.title = "Raycaster Game";
-  config.width = 800;
-  config.height = 600;
-  config.target_fps = 120;
-  config.show_fps = true;
+  config.rend_config.title = "Raycaster Game";
+  config.rend_config.width = 800;
+  config.rend_config.height = 600;
+  config.rend_config.target_fps = 120;
+  config.rend_config.show_fps = true;
   config.strip_count = 1;
   config.input_backend = RC_INPUT_BACKEND_SDL;
-  config.use_gpu = true;
+  config.rend_config.backend = RC_RENDERER_BACKEND_SDL;
+  config.rend_config.use_gpu = false;
 
   RcEngine *engine = rc_engine_create(config);
   if (!engine) {
     fprintf(stderr, "Failed to create engine\n");
     return 1;
   }
+
+  RcCamera *cam = rc_camera_create(config.rend_config.width, config.rend_config.height);
+  rc_camera_set_position(cam, 3.5, 3.5);
+  rc_camera_set_direction(cam, -1.0, 0.0);
+  rc_engine_set_camera(engine, cam);
 
   RcLevel *world = rc_level_load_from_file("assets/maps/map.txt");
   if (!world) {

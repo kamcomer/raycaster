@@ -289,10 +289,7 @@ RcLevel *rc_level_create_empty(uint32_t width, uint32_t height)
   data->ceil = calloc(height, sizeof(uint8_t *));
   data->floor = calloc(height, sizeof(uint8_t *));
   if (!data->walls || !data->ceil || !data->floor) {
-    free(data->walls);
-    free(data->ceil);
-    free(data->floor);
-    free(data);
+    destroy_data(data);
     return NULL;
   }
 

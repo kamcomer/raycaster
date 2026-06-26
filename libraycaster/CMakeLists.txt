@@ -56,17 +56,15 @@ set(RAYCASTER_SOURCES
     src/util/general.c
     src/level/level.c
     src/level/map_level.c
-    src/input/input.c
+    src/input.c
     src/sim/actor.c
     src/sim/camera.c
     src/sim/engine.c
     src/renderer/renderer.c
-    src/renderer/gpu_renderer.c
-    src/renderer/cpu_renderer.c
+    src/renderer/software.c
+    src/asset/texture.c
     src/platform/sdl/sdl_input.c
-    src/platform/sdl/sdl_window.c
     src/platform/sdl/sdl_renderer.c
-    src/platform/sdl/sdl_window_event.c
     ${SHADER_EMBED_SRC}
 )
 

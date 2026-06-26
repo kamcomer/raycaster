@@ -835,3 +835,91 @@
 //   SDL_EndGPURenderPass(render_pass);
 // }
 
+
+// static void render_gpu(RcEngine *e)
+// {
+//   RcGPURenderer *r = e->gpu;
+//   RcCamera *cam = e->camera;
+//   RcLevel *world = e->level;
+//   int w = e->config.width;
+//   int h = e->config.height;
+
+//   rc_gpu_renderer_begin_frame(r);
+
+//   WallIntersect intersects[MAX_WALL_STRIPS];
+//   int num_intersects = 0;
+
+//   for (int x = 0; x < w && num_intersects < MAX_WALL_STRIPS; x++) {
+//     double camera_x = 2 * x / (double)w - 1.0;
+//     double ray_dir_x = cam->dir.x + cam->plane.x * camera_x;
+//     double ray_dir_y = cam->dir.y + cam->plane.y * camera_x;
+
+//     int map_x = (int)cam->pos.x;
+//     int map_y = (int)cam->pos.y;
+
+//     double side_dist_x, side_dist_y;
+//     double delta_dist_x = (ray_dir_x == 0) ? 1e30 : fabs(1 / ray_dir_x);
+//     double delta_dist_y = (ray_dir_y == 0) ? 1e30 : fabs(1 / ray_dir_y);
+//     double perp_wall_dist;
+
+//     int step_x, step_y;
+//     int hit = 0;
+//     int side;
+
+//     if (ray_dir_x < 0) {
+//       step_x = -1;
+//       side_dist_x = (cam->pos.x - map_x) * delta_dist_x;
+//     } else {
+//       step_x = 1;
+//       side_dist_x = (map_x + 1.0 - cam->pos.x) * delta_dist_x;
+//     }
+
+//     if (ray_dir_y < 0) {
+//       step_y = -1;
+//       side_dist_y = (cam->pos.y - map_y) * delta_dist_y;
+//     } else {
+//       step_y = 1;
+//       side_dist_y = (map_y + 1.0 - cam->pos.y) * delta_dist_y;
+//     }
+
+//     while (hit == 0) {
+//       if (side_dist_x < side_dist_y) {
+//         side_dist_x += delta_dist_x;
+//         map_x += step_x;
+//         side = 0;
+//       } else {
+//         side_dist_y += delta_dist_y;
+//         map_y += step_y;
+//         side = 1;
+//       }
+//       if (rc_level_get_wall(world, map_x, map_y) > 0)
+//         hit = 1;
+//     }
+
+//     if (side == 0)
+//       perp_wall_dist = (side_dist_x - delta_dist_x);
+//     else
+//       perp_wall_dist = (side_dist_y - delta_dist_y);
+
+//     double wall_x;
+//     if (side == 0)
+//       wall_x = cam->pos.y + perp_wall_dist * ray_dir_y;
+//     else
+//       wall_x = cam->pos.x + perp_wall_dist * ray_dir_x;
+//     wall_x -= floor(wall_x);
+
+//     intersects[num_intersects].perp_wall_distance = perp_wall_dist;
+//     intersects[num_intersects].side = side;
+//     intersects[num_intersects].map_x = map_x;
+//     intersects[num_intersects].map_y = map_y;
+//     intersects[num_intersects].wall_type = rc_level_get_wall(world, map_x, map_y);
+//     intersects[num_intersects].vect = (Vector){wall_x, 0, 0};
+//     intersects[num_intersects].ray_dir = (Vector){ray_dir_x, ray_dir_y, 0};
+//     num_intersects++;
+//   }
+
+//   rc_gpu_renderer_draw_scene(r, 0, 0, 0, 0, 0, 0, w, h, NULL, rc_level_get_width(world),
+//                              rc_level_get_height(world), intersects, num_intersects, NULL, 0);
+
+//   rc_gpu_renderer_end_frame(r);
+// }

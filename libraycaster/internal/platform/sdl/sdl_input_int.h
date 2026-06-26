@@ -1,7 +1,7 @@
 #ifndef SDL_INPUT_INT_H
 #define SDL_INPUT_INT_H
 
-#include "internal/input/input_int.h"
+#include "internal/input_int.h"
 #include "raycaster/input.h"
 #include <SDL3/SDL.h>
 

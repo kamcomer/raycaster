@@ -1,4 +1,4 @@
-#include "internal/input/input_int.h"
+#include "internal/input_int.h"
 #include "internal/platform/sdl/sdl_input_int.h"
 
 RcInput *rc_input_create(RcInputBackend backend)
