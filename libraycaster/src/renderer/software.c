@@ -5,18 +5,6 @@
 static void render_floor_ceiling(RcEngine *e, uint32_t *framebuffer, uint32_t w, uint32_t h)
 {
   RcCamera *cam = e->camera;
-  // SDL_Renderer *r = (SDL_Renderer *)rc_renderer_get_renderer(e->renderer);
-  // int w = e->config.width;
-  // int h = e->config.height;
-
-  // SDL_Texture *texture = e->floor_ceil_texture;
-  // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-
-  // void *pixels;
-  // int pitch;
-  // SDL_LockTexture(texture, NULL, &pixels, &pitch);
-  // memset(pixels, 0, pitch * h);
-  // uint32_t *pixel_data = (uint32_t *)pixels;
 
   for (int y = h / 2; y < h; ++y) {
     float rayDirX0 = cam->dir.x - cam->plane.x;
@@ -66,9 +54,6 @@ static void render_floor_ceiling(RcEngine *e, uint32_t *framebuffer, uint32_t w,
       }
     }
   }
-
-  // SDL_UnlockTexture(texture);
-  // SDL_RenderTexture(r, texture, NULL, NULL);
 }
 
 static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer, uint32_t w,
@@ -106,15 +91,6 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
     }
   }
 
-  // SDL_Texture *texture = e->sprite_texture;
-  // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-
-  // void *pixels;
-  // int pitch;
-  // SDL_LockTexture(texture, NULL, &pixels, &pitch);
-  // memset(pixels, 0, pitch * h);
-  // uint32_t *pixel_data = (uint32_t *)pixels;
-
   for (uint32_t i = 0; i < sprite_count; i++) {
     RcSprite *sprite = &sprites[sprite_order[i]];
 
@@ -129,6 +105,7 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
       continue;
 
     int sprite_screen_x = (int)((w / 2) * (1 + transform_x / transform_y));
+
     int sprite_height = abs((int)(h / transform_y));
 
     int draw_start_y = -sprite_height / 2 + h / 2;
@@ -139,6 +116,10 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
       draw_end_y = h - 1;
 
     int sprite_width = abs((int)(h / transform_y));
+
+    if (sprite_screen_x < -sprite_width/2)
+      continue;
+
     int draw_start_x = -sprite_width / 2 + sprite_screen_x;
     if (draw_start_x < 0)
       draw_start_x = 0;
@@ -147,9 +128,6 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
       draw_end_x = w - 1;
 
     int tex_num = 8 + (sprite->texture_id % 3);
-
-    if (!e->textures)
-      continue;
 
     for (int stripe = draw_start_x; stripe < draw_end_x; stripe++) {
       int tex_x =
@@ -161,16 +139,13 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
 
           uint32_t color = e->textures[tex_num].pixels[RC_TEXTURE_HEIGHT * tex_y + tex_x];
 
-          if ((color & 0xFF) > 0x80) {
+          if ((color & 0xFF) == 0xFF) {
             framebuffer[y * w + stripe] = color;
           }
         }
       }
     }
   }
-
-  // SDL_UnlockTexture(texture);
-  // SDL_RenderTexture(r, texture, NULL, NULL);
 
   free(sprite_dist);
   free(sprite_order);
@@ -181,18 +156,6 @@ static void render_walls(RcEngine *e, uint32_t *framebuffer, double *z_buffer, u
 {
   RcCamera *cam = e->camera;
   RcLevel *world = e->level;
-  // SDL_Renderer *r = (SDL_Renderer *)rc_renderer_get_renderer(e->renderer);
-  // int w = e->config.width;
-  // int h = e->config.height;
-
-  // SDL_Texture *texture = e->wall_texture;
-  // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-
-  // void *pixels;
-  // int pitch;
-  // SDL_LockTexture(texture, NULL, &pixels, &pitch);
-  // memset(pixels, 0, pitch * h);
-  // uint32_t *pixel_data = (uint32_t *)pixels;
 
   for (int x = 0; x < w; x++) {
     double camera_x = 2 * x / (double)w - 1.0;
@@ -302,9 +265,6 @@ static void render_walls(RcEngine *e, uint32_t *framebuffer, double *z_buffer, u
       framebuffer[y * w + x] = color;
     }
   }
-
-  // SDL_UnlockTexture(texture);
-  // SDL_RenderTexture(r, texture, NULL, NULL);
 }
 
 void rc_render_software_frame(RcEngine *e, uint32_t *framebuffer, double *z_buffer)

@@ -86,9 +86,6 @@
 6: assets/textures/purplestone.png
 7: assets/textures/redbrick.png
 8: assets/textures/wood.png
-9: assets/textures/bluestone.png
-10: assets/textures/colorstone.png
-11: assets/textures/eagle.png
 
 [SPRITE_TYPES]
 1: assets/sprites/pillar.png
@@ -97,7 +94,7 @@
 
 [SPRITES]
 12 11 0
-13.982271634615385 11.952223557692308 1
+13 11 1
 10 12 2
 18.5 12.5 0
 11.5 14.5 0
