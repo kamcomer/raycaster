@@ -35,22 +35,6 @@ FetchContent_MakeAvailable(SDL3)
 FetchContent_MakeAvailable(SDL3_image)
 FetchContent_MakeAvailable(SDL3_shadercross)
 
-# Embed HLSL shaders as C strings
-set(SHADER_EMBED_SRC "${CMAKE_CURRENT_BINARY_DIR}/shaders_embed.c")
-
-add_custom_command(
-    OUTPUT ${SHADER_EMBED_SRC}
-    ${CMAKE_CURRENT_BINARY_DIR}/shaders_embed.h
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/wall.hlsl
-    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/floor.hlsl
-    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/sprite.hlsl
-    COMMAND ${CMAKE_COMMAND}
-    -DSHADER_DIR=${CMAKE_CURRENT_SOURCE_DIR}/shaders
-    -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_shaders.cmake
-    VERBATIM
-)
-
 set(RAYCASTER_SOURCES
     src/util/vector.c
     src/util/general.c
