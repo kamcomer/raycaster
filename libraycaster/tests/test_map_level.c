@@ -198,12 +198,12 @@ void test_parse_textures(void)
 
   MapLevelData *data = (MapLevelData *)w->impl;
   TEST_ASSERT_EQUAL_INT(3, data->tex_paths.len);
-  TEST_ASSERT_NOT_NULL(data->tex_paths.strs[0]);
-  TEST_ASSERT_NOT_NULL(data->tex_paths.strs[1]);
-  TEST_ASSERT_NOT_NULL(data->tex_paths.strs[2]);
-  TEST_ASSERT_EQUAL_STRING("tex_a.png", data->tex_paths.strs[0]);
-  TEST_ASSERT_EQUAL_STRING("tex_b.png", data->tex_paths.strs[1]);
-  TEST_ASSERT_EQUAL_STRING("tex_c.png", data->tex_paths.strs[2]);
+  TEST_ASSERT_NOT_NULL(data->tex_paths.items[0]);
+  TEST_ASSERT_NOT_NULL(data->tex_paths.items[1]);
+  TEST_ASSERT_NOT_NULL(data->tex_paths.items[2]);
+  TEST_ASSERT_EQUAL_STRING("tex_a.png", data->tex_paths.items[0]);
+  TEST_ASSERT_EQUAL_STRING("tex_b.png", data->tex_paths.items[1]);
+  TEST_ASSERT_EQUAL_STRING("tex_c.png", data->tex_paths.items[2]);
 
   rc_level_destroy(w);
   remove("test_tex.txt");
@@ -227,8 +227,8 @@ void test_parse_textures_with_ids(void)
 
   MapLevelData *data = (MapLevelData *)w->impl;
   TEST_ASSERT_EQUAL_INT(2, data->tex_paths.len);
-  TEST_ASSERT_EQUAL_STRING("tex_one.png", data->tex_paths.strs[0]);
-  TEST_ASSERT_EQUAL_STRING("tex_two.png", data->tex_paths.strs[1]);
+  TEST_ASSERT_EQUAL_STRING("tex_one.png", data->tex_paths.items[0]);
+  TEST_ASSERT_EQUAL_STRING("tex_two.png", data->tex_paths.items[1]);
 
   rc_level_destroy(w);
   remove("test_tex_id.txt");
@@ -296,8 +296,8 @@ void test_parse_comments(void)
 
   MapLevelData *data = (MapLevelData *)w->impl;
   TEST_ASSERT_EQUAL_INT(2, data->tex_paths.len);
-  TEST_ASSERT_EQUAL_STRING("tex.png", data->tex_paths.strs[0]);
-  TEST_ASSERT_EQUAL_STRING("wall.png", data->tex_paths.strs[1]);
+  TEST_ASSERT_EQUAL_STRING("tex.png", data->tex_paths.items[0]);
+  TEST_ASSERT_EQUAL_STRING("wall.png", data->tex_paths.items[1]);
 
   rc_level_destroy(w);
   remove("test_comments.txt");

@@ -62,7 +62,7 @@ void test_string_array_init(void)
   TEST_ASSERT_EQUAL_INT(0, ret);
   TEST_ASSERT_EQUAL_INT(5, sa.capacity);
   TEST_ASSERT_EQUAL_INT(0, sa.len);
-  TEST_ASSERT_NOT_NULL(sa.strs);
+  TEST_ASSERT_NOT_NULL(sa.items);
   string_array_destroy(&sa);
 }
 
@@ -79,11 +79,11 @@ void test_string_array_push(void)
 
   TEST_ASSERT_EQUAL_INT(0, string_array_push(&sa, "foo"));
   TEST_ASSERT_EQUAL_INT(1, sa.len);
-  TEST_ASSERT_EQUAL_STRING("foo", sa.strs[0]);
+  TEST_ASSERT_EQUAL_STRING("foo", sa.items[0]);
 
   TEST_ASSERT_EQUAL_INT(0, string_array_push(&sa, "bar"));
   TEST_ASSERT_EQUAL_INT(2, sa.len);
-  TEST_ASSERT_EQUAL_STRING("bar", sa.strs[1]);
+  TEST_ASSERT_EQUAL_STRING("bar", sa.items[1]);
 
   string_array_destroy(&sa);
 }
@@ -100,7 +100,7 @@ void test_string_array_push_resize(void)
   TEST_ASSERT_EQUAL_INT(0, string_array_push(&sa, "c"));
   TEST_ASSERT_EQUAL_INT(4, sa.capacity);
   TEST_ASSERT_EQUAL_INT(3, sa.len);
-  TEST_ASSERT_EQUAL_STRING("c", sa.strs[2]);
+  TEST_ASSERT_EQUAL_STRING("c", sa.items[2]);
 
   string_array_destroy(&sa);
 }
@@ -117,8 +117,8 @@ void test_string_array_push_multiple_resize(void)
   }
   TEST_ASSERT_EQUAL_INT(10, sa.len);
   TEST_ASSERT_EQUAL_INT(16, sa.capacity);
-  TEST_ASSERT_EQUAL_STRING("n0", sa.strs[0]);
-  TEST_ASSERT_EQUAL_STRING("n9", sa.strs[9]);
+  TEST_ASSERT_EQUAL_STRING("n0", sa.items[0]);
+  TEST_ASSERT_EQUAL_STRING("n9", sa.items[9]);
 
   string_array_destroy(&sa);
 }
@@ -136,7 +136,7 @@ void test_string_array_destroy_empty(void)
   StringArray sa;
   string_array_init(&sa, 5);
   string_array_destroy(&sa);
-  TEST_ASSERT_NULL(sa.strs);
+  TEST_ASSERT_NULL(sa.items);
 }
 
 void test_string_array_destroy_zeroed(void)
@@ -158,8 +158,8 @@ void test_duplicate_string_array(void)
   int ret = duplicate_string_array(&src, &dest, 3);
   TEST_ASSERT_EQUAL_INT(0, ret);
   TEST_ASSERT_EQUAL_INT(2, dest.len);
-  TEST_ASSERT_EQUAL_STRING("hello", dest.strs[0]);
-  TEST_ASSERT_EQUAL_STRING("world", dest.strs[1]);
+  TEST_ASSERT_EQUAL_STRING("hello", dest.items[0]);
+  TEST_ASSERT_EQUAL_STRING("world", dest.items[1]);
 
   string_array_destroy(&src);
   string_array_destroy(&dest);

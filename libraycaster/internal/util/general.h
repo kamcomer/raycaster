@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 typedef struct {
-  char **strs;
+  char **items;
   size_t capacity;
   size_t len;
 } StringArray;

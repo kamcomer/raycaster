@@ -32,12 +32,4 @@ typedef struct
     uint32_t width;
     uint32_t height;
 } RcDimensions;
-
-typedef struct
-{
-    uint32_t *pixels;
-    uint32_t height;
-    uint32_t width;
-} RcTextureData;
-
 #endif // RAYCASTER_TYPES_H

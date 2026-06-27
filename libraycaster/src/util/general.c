@@ -23,10 +23,10 @@ void trim_line(char *line)
 
 static int string_array_resize(StringArray *sa, uint32_t size)
 {
-  char **tmp = realloc(sa->strs, size * sizeof(char *));
+  char **tmp = realloc(sa->items, size * sizeof(char *));
   if (!tmp)
     return -1;
-  sa->strs = tmp;
+  sa->items = tmp;
   sa->capacity = size;
   return 0;
 }
@@ -36,8 +36,8 @@ int string_array_init(StringArray *sa, size_t size)
   if (!sa)
     return -1;
 
-  sa->strs = (char **)malloc(size * sizeof(char *));
-  if (!sa->strs)
+  sa->items = (char **)malloc(size * sizeof(char *));
+  if (!sa->items)
     return -1;
   sa->len = 0;
   sa->capacity = size;
@@ -46,19 +46,19 @@ int string_array_init(StringArray *sa, size_t size)
 
 void string_array_destroy(StringArray *sa)
 {
-  if (sa->strs) {
+  if (sa->items) {
     for (size_t i = 0; i < sa->len; i++) {
-      free(sa->strs[i]);
+      free(sa->items[i]);
     }
-    free(sa->strs);
-    sa->strs = NULL;
+    free(sa->items);
+    sa->items = NULL;
   }
   return;
 }
 
 int string_array_push(StringArray *sa, const char *s)
 {
-  if (!sa->strs)
+  if (!sa->items)
     return -1;
 
   if (sa->len == sa->capacity) {
@@ -66,37 +66,37 @@ int string_array_push(StringArray *sa, const char *s)
       return -1;
   }
 
-  sa->strs[sa->len] = malloc(strlen(s) + 1);
+  sa->items[sa->len] = malloc(strlen(s) + 1);
 
-  if (!sa->strs[sa->len])
+  if (!sa->items[sa->len])
     return -1;
 
-  strcpy(sa->strs[sa->len], s);
+  strcpy(sa->items[sa->len], s);
   sa->len++;
   return 0;
 }
 
 int duplicate_string_array(StringArray *src, StringArray *dest, size_t dest_size)
 {
-  if (src == NULL || dest == NULL || src->strs == NULL || src->len <= 0 || dest_size < src->len) {
+  if (src == NULL || dest == NULL || src->items == NULL || src->len <= 0 || dest_size < src->len) {
     return -1;
   }
 
   for (size_t i = 0; i < src->len; i++) {
-    if (src->strs[i] == NULL) {
-      dest->strs[i] = NULL;
+    if (src->items[i] == NULL) {
+      dest->items[i] = NULL;
       continue;
     }
 
-    dest->strs[i] = (char *)malloc((strlen(src->strs[i]) + 1) * sizeof(char));
-    if (dest->strs[i] == NULL) {
+    dest->items[i] = (char *)malloc((strlen(src->items[i]) + 1) * sizeof(char));
+    if (dest->items[i] == NULL) {
       for (size_t j = 0; j < dest_size; j++) {
-        free(dest->strs[j]);
+        free(dest->items[j]);
       }
       return -1;
     }
 
-    strcpy(dest->strs[i], src->strs[i]);
+    strcpy(dest->items[i], src->items[i]);
     dest->len++;
   }
   return 0;
