@@ -363,6 +363,12 @@ static void maplevel_sprites(RcLevel *w, RcSprite **out, uint32_t *count)
   *count = data->sprites.len;
 }
 
+static StringArray *maplevel_texture_paths(RcLevel *w)
+{
+  MapLevelData *data = (MapLevelData *)w->impl;
+  return &data->tex_paths;
+}
+
 static void maplevel_update(RcLevel *w, float dt)
 {
   (void)w;
@@ -390,6 +396,7 @@ RcLevelVtbl maplevel_vtbl = {
     .ceil = maplevel_ceil,
     .unit_size = maplevel_unit_size,
     .sprites = maplevel_sprites,
+    .texture_paths = maplevel_texture_paths,
     .update = maplevel_update,
     .destroy = maplevel_destroy,
 };

@@ -1,7 +1,9 @@
 #include "raycaster/engine.h"
 #include "internal/engine_int.h"
+#include "internal/level/level_int.h"
 #include "internal/renderer_int.h"
-#include "internal/asset/texture_int.h"
+#include "internal/util/general.h"
+#include "raycaster/texture.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -48,9 +50,6 @@ RcEngine *rc_engine_create(RcEngineConfig config)
 
   e->last_time = SDL_GetTicks();
   e->accumulator = 0.0f;
-
-  e->textures = rc_create_textures();
-
   return e;
 }
 
@@ -224,6 +223,14 @@ void rc_engine_run(RcEngine *e)
 {
   if (!e)
     return;
+
+  StringArray *texture_paths = level_get_texture_paths(e->level);
+  if (!texture_paths) {
+    rc_engine_destroy(e);
+    return;
+  }
+
+  e->textures = rc_load_textures(texture_paths->items, texture_paths->len);
 
   e->running = true;
 

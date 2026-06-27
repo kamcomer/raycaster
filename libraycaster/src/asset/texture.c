@@ -1,101 +1,115 @@
-#include "internal/asset/texture_int.h"
+#include "raycaster/texture.h"
+#include "internal/util/general.h"
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void rc_free_textures(RcTextureData *textures)
+void rc_free_textures(RcTextureArray *ta)
 {
-  if (!textures)
+  if (!ta)
     return;
-  for (int i = 0; i < 11; i++) {
-    free(textures[i].pixels);
+  for (uint32_t i = 0; i < ta->len; i++) {
+    rc_free_texture(&(ta->items[i]));
   }
-  free(textures);
+  free(ta);
 }
 
-static uint32_t *load_image_data(const char *file_path, uint32_t *ptr_width, uint32_t *ptr_height)
+void rc_free_texture(RcTexture *t)
+{
+  if (!t) {
+    return;
+  }
+  if (t->pixels)
+    free(t->pixels);
+  free(t);
+}
+
+int rc_load_texture(const char *file_path, RcTexture *texture)
 {
   SDL_Surface *texture_surface = IMG_Load(file_path);
   if (!texture_surface) {
     fprintf(stderr, "Could not load image: %s\n", SDL_GetError());
-    return NULL;
+    return -1;
   }
 
-  *ptr_width = (uint32_t)texture_surface->w;
-  *ptr_height = (uint32_t)texture_surface->h;
-
   SDL_Surface *formatted_surface = SDL_ConvertSurface(texture_surface, SDL_PIXELFORMAT_RGBA8888);
-
   SDL_DestroySurface(texture_surface);
   if (!formatted_surface) {
     fprintf(stderr, "Could not convert surface to RGBA8888: %s\n", SDL_GetError());
-    return NULL;
+    return -1;
   }
 
-  uint32_t *texture_pixels = malloc(formatted_surface->w * formatted_surface->h * sizeof(uint32_t));
-  if (!texture_pixels) {
+  uint32_t w = formatted_surface->w;
+  uint32_t h = formatted_surface->h;
+
+  texture->w = w;
+  texture->h = h;
+
+  if (texture->path)
+    free(texture->path);
+
+  texture->path = strdup(file_path);
+
+  if (texture->pixels)
+    free(texture->pixels);
+
+  texture->pixels = calloc(w * h, sizeof(uint32_t));
+  if (!texture->pixels) {
     fprintf(stderr, "Could not allocate memory for pixel data\n");
     SDL_DestroySurface(formatted_surface);
-    return NULL;
+    return -1;
   }
 
-  uint32_t *formatted_pixels = (uint32_t *)formatted_surface->pixels;
-  for (int current_row = 0; current_row < formatted_surface->h; current_row++) {
-    for (int current_col = 0; current_col < formatted_surface->w; current_col++) {
-      uint32_t pixel = formatted_pixels[current_row * formatted_surface->w + current_col];
-      texture_pixels[current_row * formatted_surface->w + current_col] = pixel;
+  uint32_t *pixels = (uint32_t *)formatted_surface->pixels;
+  for (uint32_t row = 0; row < h; row++) {
+    for (uint32_t col = 0; col < w; col++) {
+      texture->pixels[row * w + col] = pixels[row * w + col];
     }
   }
 
   SDL_DestroySurface(formatted_surface);
 
-  return texture_pixels;
+  return 0;
 }
 
-typedef struct {
-  uint32_t *pixels;
-  uint32_t width;
-  uint32_t height;
-} SourceImage;
-
-RcTextureData *rc_create_textures(void)
+RcTextureArray *rc_load_textures(char **paths, size_t count)
 {
-  RcTextureData *textures = malloc(sizeof(RcTextureData) * 11);
-  if (!textures)
-    return NULL;
 
-  SourceImage sources[11];
-  const char *paths[] = {
-      "assets/textures/bluestone.png",   "assets/textures/colorstone.png",
-      "assets/textures/eagle.png",       "assets/textures/greystone.png",
-      "assets/textures/mossy.png",       "assets/textures/purplestone.png",
-      "assets/textures/redbrick.png",    "assets/textures/wood.png",
-      "assets/sprites/barrel.png",       "assets/sprites/pillar.png",
-      "assets/sprites/greenlight.png",
-  };
+  RcTextureArray *textures = rc_create_texture_array(count);
 
-  for (int i = 0; i < 11; i++) {
-    sources[i].pixels = load_image_data(paths[i], &sources[i].width, &sources[i].height);
-  }
+  // const char *paths[] = {
+  //     "assets/textures/bluestone.png", "assets/textures/colorstone.png",
+  //     "assets/textures/eagle.png",     "assets/textures/greystone.png",
+  //     "assets/textures/mossy.png",     "assets/textures/purplestone.png",
+  //     "assets/textures/redbrick.png",  "assets/textures/wood.png",
+  //     "assets/sprites/barrel.png",     "assets/sprites/pillar.png",
+  //     "assets/sprites/greenlight.png",
+  // };
 
-  for (int i = 0; i < 11; i++) {
-    textures[i].pixels = calloc(RC_TEXTURE_WIDTH * RC_TEXTURE_HEIGHT, sizeof(uint32_t));
-    textures[i].width = RC_TEXTURE_WIDTH;
-    textures[i].height = RC_TEXTURE_HEIGHT;
-  }
-
-  for (int i = 0; i < 11; i++) {
-    if (sources[i].pixels) {
-      uint32_t copy_count = sources[i].width * sources[i].height;
-      if (copy_count > RC_TEXTURE_WIDTH * RC_TEXTURE_HEIGHT)
-        copy_count = RC_TEXTURE_WIDTH * RC_TEXTURE_HEIGHT;
-      for (uint32_t j = 0; j < copy_count; j++) {
-        textures[i].pixels[j] = sources[i].pixels[j];
-      }
-      free(sources[i].pixels);
+  for (int i = 0; i < count; i++) {
+    if (rc_load_texture(paths[i], &(textures->items[i])) != 0) {
+      rc_free_textures(textures);
+      return NULL;
     }
   }
 
   return textures;
+}
+
+RcTextureArray *rc_create_texture_array(size_t size)
+{
+  RcTextureArray *ta = calloc(1, sizeof(RcTextureArray));
+  if (!ta) {
+    return NULL;
+  }
+
+  ta->items = calloc(size, sizeof(RcTexture));
+  if (!ta->items) {
+    free(ta);
+    return NULL;
+  }
+  ta->capacity = size;
+
+  return ta;
 }

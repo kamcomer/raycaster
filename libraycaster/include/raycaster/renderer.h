@@ -17,6 +17,7 @@ typedef struct RcRendererConfig {
   uint32_t target_fps;
   bool show_fps;
   bool use_gpu;
+  bool disable_sprites;
   RcRendererBackend backend;
   RcRendererScreenMode screen_mode;
 

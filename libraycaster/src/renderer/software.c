@@ -6,7 +6,7 @@ static void render_floor_ceiling(RcEngine *e, uint32_t *framebuffer, uint32_t w,
 {
   RcCamera *cam = e->camera;
 
-  for (int y = h / 2; y < h; ++y) {
+  for (uint32_t y = h / 2; y < h; ++y) {
     float rayDirX0 = cam->dir.x - cam->plane.x;
     float rayDirY0 = cam->dir.y - cam->plane.y;
     float rayDirX1 = cam->dir.x + cam->plane.x;
@@ -29,7 +29,7 @@ static void render_floor_ceiling(RcEngine *e, uint32_t *framebuffer, uint32_t w,
     float floorX = cam->pos.x + rowDistance * rayDirX0;
     float floorY = cam->pos.y + rowDistance * rayDirY0;
 
-    for (int x = 0; x < w; x++) {
+    for (uint32_t x = 0; x < w; x++) {
       int cellX = (int)(floorX);
       int cellY = (int)(floorY);
 
@@ -41,12 +41,12 @@ static void render_floor_ceiling(RcEngine *e, uint32_t *framebuffer, uint32_t w,
 
       if (cellX >= 0 && cellX < 24 && cellY >= 0 && cellY < 24) {
         int floor_tex = 7;
-        int ceil_tex = 3;
+        int ceil_tex = 7;
 
-        uint32_t floor_color = e->textures[floor_tex].pixels[RC_TEXTURE_HEIGHT * ty + tx];
+        uint32_t floor_color = e->textures->items[floor_tex].pixels[RC_TEXTURE_HEIGHT * ty + tx];
         framebuffer[y * w + x] = floor_color;
 
-        uint32_t ceil_color = e->textures[ceil_tex].pixels[RC_TEXTURE_HEIGHT * ty + tx];
+        uint32_t ceil_color = e->textures->items[ceil_tex].pixels[RC_TEXTURE_HEIGHT * ty + tx];
         framebuffer[(h - y - 1) * w + x] = ceil_color;
       } else {
         framebuffer[y * w + x] = 0xFF606078;
@@ -112,19 +112,19 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
     if (draw_start_y < 0)
       draw_start_y = 0;
     int draw_end_y = sprite_height / 2 + h / 2;
-    if (draw_end_y >= h)
+    if (draw_end_y >= (int)h)
       draw_end_y = h - 1;
 
     int sprite_width = abs((int)(h / transform_y));
 
-    if (sprite_screen_x < -sprite_width/2)
+    if (sprite_screen_x < -sprite_width / 2)
       continue;
 
     int draw_start_x = -sprite_width / 2 + sprite_screen_x;
     if (draw_start_x < 0)
       draw_start_x = 0;
     int draw_end_x = sprite_width / 2 + sprite_screen_x;
-    if (draw_end_x >= w)
+    if (draw_end_x >= (int)w)
       draw_end_x = w - 1;
 
     int tex_num = 8 + (sprite->texture_id % 3);
@@ -137,7 +137,7 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
         for (int y = draw_start_y; y < draw_end_y; y++) {
           int tex_y = (((y * 2 - h + sprite_height) * RC_TEXTURE_HEIGHT) / sprite_height) / 2;
 
-          uint32_t color = e->textures[tex_num].pixels[RC_TEXTURE_HEIGHT * tex_y + tex_x];
+          uint32_t color = e->textures->items[tex_num].pixels[RC_TEXTURE_HEIGHT * tex_y + tex_x];
 
           if ((color & 0xFF) == 0xFF) {
             framebuffer[y * w + stripe] = color;
@@ -157,7 +157,7 @@ static void render_walls(RcEngine *e, uint32_t *framebuffer, double *z_buffer, u
   RcCamera *cam = e->camera;
   RcLevel *world = e->level;
 
-  for (int x = 0; x < w; x++) {
+  for (uint32_t x = 0; x < w; x++) {
     double camera_x = 2 * x / (double)w - 1.0;
     double ray_dir_x = cam->dir.x + cam->plane.x * camera_x;
     double ray_dir_y = cam->dir.y + cam->plane.y * camera_x;
@@ -221,7 +221,7 @@ static void render_walls(RcEngine *e, uint32_t *framebuffer, double *z_buffer, u
       draw_start = 0;
 
     int draw_end = line_height / 2 + h / 2;
-    if (draw_end >= h)
+    if (draw_end >= (int)h)
       draw_end = h - 1;
 
     uint32_t wall_type = rc_level_get_wall(world, map_x, map_y);
@@ -245,7 +245,7 @@ static void render_walls(RcEngine *e, uint32_t *framebuffer, double *z_buffer, u
 
       uint32_t color;
       if (tex_num >= 0 && e->textures && tex_num < 11) {
-        color = e->textures[tex_num].pixels[RC_TEXTURE_HEIGHT * tex_y + tex_x];
+        color = e->textures->items[tex_num].pixels[RC_TEXTURE_HEIGHT * tex_y + tex_x];
       } else {
         color = 0xFF00FFFF;
       }
@@ -273,5 +273,6 @@ void rc_render_software_frame(RcEngine *e, uint32_t *framebuffer, double *z_buff
   uint32_t h = e->config.rend_config.height;
   render_floor_ceiling(e, framebuffer, w, h);
   render_walls(e, framebuffer, z_buffer, w, h);
-  render_sprites(e, framebuffer, z_buffer, w, h);
+  if (!e->config.rend_config.disable_sprites)
+    render_sprites(e, framebuffer, z_buffer, w, h);
 }

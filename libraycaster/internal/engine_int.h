@@ -2,6 +2,7 @@
 #define ENGINE_INT_H
 
 #include "raycaster/raycaster.h"
+#include "raycaster/texture.h"
 
 struct RcEngine {
   RcEngineConfig config;
@@ -24,7 +25,7 @@ struct RcEngine {
   float fps;
   uint32_t fps_timer;
 
-  RcTextureData *textures;
+  RcTextureArray *textures;
 };
 
 #endif // ENGINE_INT_H

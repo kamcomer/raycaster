@@ -1,4 +1,5 @@
 #include "internal/level/level_int.h"
+#include "internal/util/general.h"
 
 uint32_t rc_level_get_width(RcLevel *w) { return w->vtbl->width(w); }
 
@@ -11,6 +12,8 @@ uint32_t rc_level_get_floor(RcLevel *w, int x, int y) { return w->vtbl->floor(w,
 uint32_t rc_level_get_ceil(RcLevel *w, int x, int y) { return w->vtbl->ceil(w, x, y); }
 
 uint32_t rc_level_get_unit_size(RcLevel *w) { return w->vtbl->unit_size(w); }
+
+StringArray *level_get_texture_paths(RcLevel *w) { return w->vtbl->texture_paths(w); }
 
 void rc_level_get_sprites(RcLevel *w, RcSprite **out, uint32_t *count)
 {

@@ -2,6 +2,7 @@
 #define RAYCASTER_LEVEL_H
 
 #include "camera.h"
+#include "texture.h"
 #include "types.h"
 
 typedef struct RcLevel RcLevel;
@@ -14,7 +15,6 @@ typedef struct RcSprite {
 
 RcLevel *rc_level_load_from_file(const char *file_path);
 RcLevel *rc_level_create_empty(uint32_t width, uint32_t height);
-
 uint32_t rc_level_get_width(RcLevel *w);
 uint32_t rc_level_get_height(RcLevel *w);
 uint32_t rc_level_get_wall(RcLevel *w, int x, int y);
