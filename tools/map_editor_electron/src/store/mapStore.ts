@@ -1,68 +1,81 @@
-import { create } from 'zustand'
-import { MapData, Layer, Tool, Sprite } from '../map/types'
-import { createEmptyMap } from '../map/parser'
+import { create } from "zustand";
+import { MapData, MapLayer, Sprite } from "../map/types";
+import { createEmptyMap } from "../map/parser";
+import { EDITOR_TOOLS, EditorTool } from "../types";
 
 interface TextureEntry {
-  id: number
-  path: string
-  dataUrl: string
+  id: number;
+  path: string;
+  dataUrl: string;
 }
 
 interface SpriteTypeEntry {
-  path: string
-  frameCount: number
-  frameDelay: number
-  dataUrl: string
+  path: string;
+  frameCount: number;
+  frameDelay: number;
+  dataUrl: string;
 }
 
 interface MapStore {
-  map: MapData
-  selectedTexture: number
-  selectedSpriteType: number
-  activeLayer: Layer
-  activeTool: Tool
-  textures: TextureEntry[]
-  spriteTypes: SpriteTypeEntry[]
-  filePath: string | null
-  selectedSpriteIndex: number
+  map: MapData;
+  selectedTexture: number;
+  selectedSpriteType: number;
+  activeLayer: MapLayer;
+  activeTool: EditorTool;
+  textures: TextureEntry[];
+  spriteTypes: SpriteTypeEntry[];
+  filePath: string | null;
+  selectedSpriteIndex: number;
+  showNewDialog: boolean;
 
-  setCell: (row: number, col: number, textureId: number) => void
-  setSelectedTexture: (id: number) => void
-  setSelectedSpriteType: (index: number) => void
-  setActiveLayer: (layer: Layer) => void
-  setActiveTool: (tool: Tool) => void
-  addTexture: (path: string, dataUrl: string) => void
-  importTexture: (path: string, dataUrl: string) => void
-  removeTexture: (id: number) => void
-  importSpriteType: (path: string, dataUrl: string, frameCount?: number, frameDelay?: number) => void
-  selectSprite: (index: number) => void
-  addSprite: (sprite: Sprite) => void
-  removeSprite: (index: number) => void
-  updateSprite: (index: number, partial: Partial<Sprite>) => void
-  populateTextures: (entries: { path: string; dataUrl: string }[]) => void
-  populateSpriteTypes: (entries: { path: string; frameCount: number; frameDelay: number; dataUrl: string }[]) => void
-  loadMap: (data: MapData) => void
-  newMap: (width: number, height: number) => void
-  setFilePath: (path: string | null) => void
-  showNewDialog: boolean
-  setShowNewDialog: (show: boolean) => void
-  resizeMap: (width: number, height: number) => void
+  setCell: (row: number, col: number, textureId: number) => void;
+  setSelectedTexture: (id: number) => void;
+  setSelectedSpriteType: (index: number) => void;
+  setActiveLayer: (layer: MapLayer) => void;
+  setActiveTool: (tool: EditorTool) => void;
+  addTexture: (path: string, dataUrl: string) => void;
+  importTexture: (path: string, dataUrl: string) => void;
+  removeTexture: (id: number) => void;
+  importSpriteType: (
+    path: string,
+    dataUrl: string,
+    frameCount?: number,
+    frameDelay?: number,
+  ) => void;
+  selectSprite: (index: number) => void;
+  addSprite: (sprite: Sprite) => void;
+  removeSprite: (index: number) => void;
+  updateSprite: (index: number, partial: Partial<Sprite>) => void;
+  populateTextures: (entries: { path: string; dataUrl: string }[]) => void;
+  populateSpriteTypes: (
+    entries: {
+      path: string;
+      frameCount: number;
+      frameDelay: number;
+      dataUrl: string;
+    }[],
+  ) => void;
+  loadMap: (data: MapData) => void;
+  newMap: (width: number, height: number) => void;
+  setFilePath: (path: string | null) => void;
+  setShowNewDialog: (show: boolean) => void;
+  resizeMap: (width: number, height: number) => void;
 }
 
 function cloneGrid(grid: number[][], newWidth: number, newHeight: number) {
   return Array.from({ length: newHeight }, (_, r) =>
     Array.from({ length: newWidth }, (_, c) =>
-      r < grid.length && c < grid[r].length ? grid[r][c] : 0
-    )
-  )
+      r < grid.length && c < grid[r].length ? grid[r][c] : 0,
+    ),
+  );
 }
 
 export const useMapStore = create<MapStore>()((set) => ({
   map: createEmptyMap(24, 24),
   selectedTexture: 1,
   selectedSpriteType: 0,
-  activeLayer: 'walls',
-  activeTool: 'paint',
+  activeLayer: MapLayer.Walls,
+  activeTool: EDITOR_TOOLS.Texture,
   textures: [],
   spriteTypes: [],
   filePath: null,
@@ -71,17 +84,18 @@ export const useMapStore = create<MapStore>()((set) => ({
 
   setCell: (row, col, textureId) =>
     set((state) => {
-      const { map } = state
-      const grid = map[state.activeLayer]
-      if (row < 0 || row >= map.height || col < 0 || col >= map.width) return state
-      const copy = grid.map((r) => [...r])
-      copy[row][col] = textureId
+      const { map } = state;
+      const grid = map[state.activeLayer];
+      if (row < 0 || row >= map.height || col < 0 || col >= map.width)
+        return state;
+      const copy = grid.map((r) => [...r]);
+      copy[row][col] = textureId;
       return {
         map: {
           ...map,
           [state.activeLayer]: copy,
         },
-      }
+      };
     }),
 
   setSelectedTexture: (id) => set({ selectedTexture: id }),
@@ -94,21 +108,21 @@ export const useMapStore = create<MapStore>()((set) => ({
 
   addTexture: (path, dataUrl) =>
     set((state) => {
-      const id = state.textures.length + 1
-      return { textures: [...state.textures, { id, path, dataUrl }] }
+      const id = state.textures.length + 1;
+      return { textures: [...state.textures, { id, path, dataUrl }] };
     }),
 
   importTexture: (path, dataUrl) =>
     set((state) => {
-      const id = state.textures.length + 1
-      if (state.map.textures.includes(path)) return state
+      const id = state.textures.length + 1;
+      if (state.map.textures.includes(path)) return state;
       return {
         textures: [...state.textures, { id, path, dataUrl }],
         map: {
           ...state.map,
           textures: [...state.map.textures, path],
         },
-      }
+      };
     }),
 
   removeTexture: (id) =>
@@ -122,15 +136,21 @@ export const useMapStore = create<MapStore>()((set) => ({
 
   importSpriteType: (path, dataUrl, frameCount = 1, frameDelay = 0) =>
     set((state) => {
-      if (state.spriteTypes.some((st) => st.path === path)) return state
-      if (state.map.spriteTypes.some((st) => st.path === path)) return state
+      if (state.spriteTypes.some((st) => st.path === path)) return state;
+      if (state.map.spriteTypes.some((st) => st.path === path)) return state;
       return {
-        spriteTypes: [...state.spriteTypes, { path, frameCount, frameDelay, dataUrl }],
+        spriteTypes: [
+          ...state.spriteTypes,
+          { path, frameCount, frameDelay, dataUrl },
+        ],
         map: {
           ...state.map,
-          spriteTypes: [...state.map.spriteTypes, { path, frameCount, frameDelay }],
+          spriteTypes: [
+            ...state.map.spriteTypes,
+            { path, frameCount, frameDelay },
+          ],
         },
-      }
+      };
     }),
 
   populateSpriteTypes: (entries) =>
@@ -166,11 +186,11 @@ export const useMapStore = create<MapStore>()((set) => ({
 
   updateSprite: (index, partial) =>
     set((state) => {
-      const sprites = [...state.map.sprites]
+      const sprites = [...state.map.sprites];
       if (index >= 0 && index < sprites.length) {
-        sprites[index] = { ...sprites[index], ...partial }
+        sprites[index] = { ...sprites[index], ...partial };
       }
-      return { map: { ...state.map, sprites } }
+      return { map: { ...state.map, sprites } };
     }),
 
   populateTextures: (entries) =>
@@ -191,8 +211,8 @@ export const useMapStore = create<MapStore>()((set) => ({
       selectedTexture: 1,
       selectedSpriteType: 0,
       selectedSpriteIndex: -1,
-      activeLayer: 'walls',
-      activeTool: 'paint',
+      activeLayer: MapLayer.Walls,
+      activeTool: EDITOR_TOOLS.Texture,
     }),
 
   newMap: (width, height) =>
@@ -204,8 +224,8 @@ export const useMapStore = create<MapStore>()((set) => ({
       selectedTexture: 1,
       selectedSpriteType: 0,
       selectedSpriteIndex: -1,
-      activeLayer: 'walls',
-      activeTool: 'paint',
+      activeLayer: MapLayer.Walls,
+      activeTool: EDITOR_TOOLS.Texture,
     }),
 
   setFilePath: (path) => set({ filePath: path }),
@@ -213,7 +233,7 @@ export const useMapStore = create<MapStore>()((set) => ({
 
   resizeMap: (width, height) =>
     set((state) => {
-      const { map } = state
+      const { map } = state;
       return {
         map: {
           ...map,
@@ -223,6 +243,6 @@ export const useMapStore = create<MapStore>()((set) => ({
           floor: cloneGrid(map.floor, width, height),
           ceiling: cloneGrid(map.ceiling, width, height),
         },
-      }
+      };
     }),
-}))
+}));

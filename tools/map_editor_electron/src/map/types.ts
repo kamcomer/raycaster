@@ -1,26 +1,30 @@
 export interface SpriteTypeDef {
-  path: string
-  frameCount: number
-  frameDelay: number
+  path: string;
+  frameCount: number;
+  frameDelay: number;
 }
 
 export interface MapData {
-  width: number
-  height: number
-  walls: number[][]
-  floor: number[][]
-  ceiling: number[][]
-  textures: string[]
-  spriteTypes: SpriteTypeDef[]
-  sprites: Sprite[]
+  width: number;
+  height: number;
+  walls: number[][];
+  floor: number[][];
+  ceiling: number[][];
+  textures: string[];
+  spriteTypes: SpriteTypeDef[];
+  sprites: Sprite[];
 }
 
 export interface Sprite {
-  x: number
-  y: number
-  type: number
+  x: number;
+  y: number;
+  type: number;
 }
 
-export type Layer = 'walls' | 'floor' | 'ceiling'
+export enum MapLayer {
+  Walls = "walls",
+  Floor = "floor",
+  Ceiling = "ceiling",
+}
 
-export type Tool = 'paint' | 'erase' | 'sprite'
+export const MAP_LAYERS = [MapLayer.Walls, MapLayer.Floor, MapLayer.Ceiling];
