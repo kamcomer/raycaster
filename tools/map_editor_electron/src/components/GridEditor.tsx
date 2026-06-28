@@ -2,6 +2,8 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { useMapStore } from "../store/mapStore";
 import { TEXTURE_COLORS } from "../map/constants";
 import { getCachedTexture } from "../utils/textureCache";
+import { EDITOR_TOOLS } from "../types";
+import SpriteSheetTool from "./SpriteSheetTool/SpriteSheetTool";
 
 function getCanvasTheme() {
   const s = getComputedStyle(document.documentElement);
@@ -305,6 +307,10 @@ export default function GridEditor() {
     selectedSpriteIndex,
     spriteTypes,
   ]);
+
+  if (activeTool === EDITOR_TOOLS.SpriteSheet) {
+    return <SpriteSheetTool />;
+  }
 
   return (
     <div

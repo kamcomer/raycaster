@@ -1,6 +1,7 @@
 import { useMapStore } from "../../store/mapStore";
 import { TEXTURE_COLORS } from "../../map/constants";
-import { preloadTexture } from "../../utils/textureCache";
+import PanelHeader, { ImportButtonPair } from "../ui/PanelHeader";
+import { useImportAsset } from "../../hooks/useImportAsset";
 
 export default function TexturePalette() {
   const textures = useMapStore((s) => s.textures);
@@ -9,77 +10,15 @@ export default function TexturePalette() {
   const emptySlotCount = Math.max(1, 11 - textures.length);
   const importTexture = useMapStore((s) => s.importTexture);
 
-  const api = window.api;
-
-  const resolveTexturePath = async (absolutePath: string) => {
-    const mapFile = useMapStore.getState().filePath;
-    if (mapFile) {
-      return await api.relativeToRoot(mapFile, absolutePath);
-    }
-    return absolutePath.split("/").pop() || absolutePath;
-  };
-
-  const handleAddTexture = async () => {
-    try {
-      const absolutePath = await api.openTextureDialog();
-      if (!absolutePath) return;
-      const tex = await api.readTexture(absolutePath);
-      try {
-        await preloadTexture(tex.data);
-      } catch {
-        console.warn("texture preload failed, using fallback:", absolutePath);
-      }
-      const relPath = await resolveTexturePath(tex.path);
-      importTexture(relPath, tex.data);
-    } catch (err) {
-      console.error("failed to import texture:", err);
-    }
-  };
-
-  const handleImportTextureDir = async () => {
-    try {
-      const dirPath = await api.selectDirectory();
-      if (!dirPath) return;
-      const files = await api.listTexturesInDirectory(dirPath);
-      if (files.length === 0) {
-        console.warn("no image files found in:", dirPath);
-        return;
-      }
-      for (const file of files) {
-        try {
-          const tex = await api.readTexture(file.path);
-          await preloadTexture(tex.data);
-          const relPath = await resolveTexturePath(tex.path);
-          importTexture(relPath, tex.data);
-        } catch (err) {
-          console.warn("skipping file:", file.name, err);
-        }
-      }
-    } catch (err) {
-      console.error("failed to import texture directory:", err);
-    }
-  };
+  const { handleAdd: handleAddTexture, handleImportDir: handleImportTextureDir } =
+    useImportAsset(importTexture, "texture");
 
   return (
     <>
-      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-muted flex items-center justify-between">
-        Textures
-        <div className="flex flex-row">
-          <button
-            onClick={handleAddTexture}
-            className="no-drag px-3 py-1.5 hover:bg-muted-hover border border-muted rounded-l text-sm ml-2"
-          >
-            +
-          </button>
-
-          <button
-            onClick={handleImportTextureDir}
-            className="no-drag px-3 py-1.5 hover:bg-muted-hover border border-muted rounded-r text-sm"
-          >
-            <i className="bi bi-folder" />
-          </button>
-        </div>
-      </div>
+      <PanelHeader
+        title="Textures"
+        actions={<ImportButtonPair onAdd={handleAddTexture} onImportDir={handleImportTextureDir} />}
+      />
       <div className="flex-1 overflow-y-auto scrollbar-thin p-2">
         <div className="grid grid-cols-2 gap-1.5">
           {textures.map((tex) => {

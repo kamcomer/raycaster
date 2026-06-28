@@ -1,5 +1,7 @@
 import { useMapStore } from "../store/mapStore";
 import { MouseButton } from "../types";
+import LabeledNumberInput from "./ui/LabeledNumberInput";
+import PanelHeader from "./ui/PanelHeader";
 
 export default function SpritePanel() {
   const sprites = useMapStore((s) => s.map.sprites);
@@ -25,9 +27,7 @@ export default function SpritePanel() {
 
   return (
     <div className="h-32 bg-surface-dark border-t border-muted shrink-0 flex flex-col">
-      <div className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-        Sprites ({sprites.length})
-      </div>
+      <PanelHeader title={`Sprites (${sprites.length})`} border={false} compact />
       <div className="flex-1 overflow-y-auto scrollbar-thin px-3 pb-2">
         <div className="flex flex-wrap gap-2">
           {sprites.map((sprite, i) => {
@@ -70,34 +70,20 @@ export default function SpritePanel() {
       </div>
       {selected && (
         <div className="px-3 py-2 border-t border-muted flex items-center gap-4 text-xs">
-          <label className="flex items-center gap-1.5">
-            <span className="text-gray-400">X</span>
-            <input
-              type="number"
-              step="0.1"
-              value={selected.x}
-              onChange={(e) =>
-                updateSprite(selectedSpriteIndex, {
-                  x: parseFloat(e.target.value) || 0,
-                })
-              }
-              className="w-16 bg-muted rounded px-1.5 py-0.5 text-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </label>
-          <label className="flex items-center gap-1.5">
-            <span className="text-gray-400">Y</span>
-            <input
-              type="number"
-              step="0.1"
-              value={selected.y}
-              onChange={(e) =>
-                updateSprite(selectedSpriteIndex, {
-                  y: parseFloat(e.target.value) || 0,
-                })
-              }
-              className="w-16 bg-muted rounded px-1.5 py-0.5 text-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </label>
+          <LabeledNumberInput
+            label="X"
+            value={selected.x}
+            onChange={(v) => updateSprite(selectedSpriteIndex, { x: v || 0 })}
+            step={0.1}
+            size="sm"
+          />
+          <LabeledNumberInput
+            label="Y"
+            value={selected.y}
+            onChange={(v) => updateSprite(selectedSpriteIndex, { y: v || 0 })}
+            step={0.1}
+            size="sm"
+          />
           <span className="text-gray-500 ml-auto">arrow keys to nudge</span>
         </div>
       )}

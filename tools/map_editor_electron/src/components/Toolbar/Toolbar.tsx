@@ -1,96 +1,34 @@
 import { useState } from "react";
 import { useMapStore } from "../../store/mapStore";
-import { parseMap, serializeMap } from "../../map/parser";
 import { EditorTool, EDITOR_TOOLS } from "../../types";
-import { MAP_LAYERS } from "../../map/types";
+import { MAP_LAYERS, MapLayer } from "../../map/types";
+import ButtonGroup from "../ui/ButtonGroup";
+import Dialog, { DialogActions } from "../ui/Dialog";
+import LabeledNumberInput from "../ui/LabeledNumberInput";
 import TextureToolBar from "./TextureToolBar";
-import SpritToolBar from "./SpriteToolBar";
+import SpriteSheetToolbar from "../SpriteSheetTool/SpriteSheetToolbar";
+import { openMap, saveMap, saveMapAs } from "../../utils/fileActions";
 
 export default function Toolbar() {
   const map = useMapStore((s) => s.map);
   const filePath = useMapStore((s) => s.filePath);
-  const loadMap = useMapStore((s) => s.loadMap);
   const newMap = useMapStore((s) => s.newMap);
-  const setFilePath = useMapStore((s) => s.setFilePath);
+  const setShowNewDialog = useMapStore((s) => s.setShowNewDialog);
   const activeLayer = useMapStore((s) => s.activeLayer);
   const setActiveLayer = useMapStore((s) => s.setActiveLayer);
   const setActiveTool = useMapStore((s) => s.setActiveTool);
   const activeTool = useMapStore((s) => s.activeTool);
 
   const showNewDialog = useMapStore((s) => s.showNewDialog);
-  const setShowNewDialog = useMapStore((s) => s.setShowNewDialog);
   const [newWidth, setNewWidth] = useState(24);
   const [newHeight, setNewHeight] = useState(24);
-
-  const api = window.api;
 
   const handleNew = () => {
     newMap(newWidth, newHeight);
     setShowNewDialog(false);
   };
 
-  const handleOpen = async () => {
-    const path = await api.openDialog();
-    if (!path) return;
-    const text = await api.readFile(path);
-    const data = parseMap(text);
-    loadMap(data);
-    setFilePath(path);
-    const textureEntries: { path: string; dataUrl: string }[] = [];
-    for (const texPath of data.textures) {
-      try {
-        const absPath = await api.resolveFromRoot(path, texPath);
-        const tex = await api.readTexture(absPath);
-        textureEntries.push({ path: texPath, dataUrl: tex.data });
-      } catch (err) {
-        console.warn("could not load texture:", texPath, err);
-      }
-    }
-    if (textureEntries.length > 0) {
-      useMapStore.getState().populateTextures(textureEntries);
-    }
-    const spriteTypeEntries: {
-      path: string;
-      frameCount: number;
-      frameDelay: number;
-      dataUrl: string;
-    }[] = [];
-    for (const st of data.spriteTypes) {
-      try {
-        const absPath = await api.resolveFromRoot(path, st.path);
-        const tex = await api.readTexture(absPath);
-        spriteTypeEntries.push({
-          path: st.path,
-          frameCount: st.frameCount,
-          frameDelay: st.frameDelay,
-          dataUrl: tex.data,
-        });
-      } catch (err) {
-        console.warn("could not load sprite type:", st.path, err);
-      }
-    }
-    if (spriteTypeEntries.length > 0) {
-      useMapStore.getState().populateSpriteTypes(spriteTypeEntries);
-    }
-  };
-
-  const handleSave = async () => {
-    const content = serializeMap(map);
-    const path = filePath || (await api.saveDialog("map.txt"));
-    if (!path) return;
-    await api.writeFile(path, content);
-    setFilePath(path);
-  };
-
-  const handleSaveAs = async () => {
-    const content = serializeMap(map);
-    const path = await api.saveDialog("map.txt");
-    if (!path) return;
-    await api.writeFile(path, content);
-    setFilePath(path);
-  };
-
-  const handleExport = handleSaveAs;
+  const handleExport = saveMapAs;
 
   const [showResizeDialog, setShowResizeDialog] = useState(false);
   const [resizeWidth, setResizeWidth] = useState(map.width);
@@ -102,82 +40,67 @@ export default function Toolbar() {
     setShowResizeDialog(false);
   };
 
-  const menuButtons = {
+  const setShowKeybindModal = useMapStore((s) => s.setShowKeybindModal);
+
+  const menuActions: Record<string, () => void> = {
     new: () => setShowNewDialog(true),
-    open: handleOpen,
-    save: handleSave,
+    open: openMap,
+    save: saveMap,
     export: handleExport,
   };
 
   return (
     <>
-      <div className="h-12 bg-surface-dark border-b border-muted flex items-center pl-[76px] pr-3 gap-2 drag-region shrink-0 justify-around">
+      <div className="h-12 bg-surface-dark border-b border-muted flex items-center pl-[76px] pr-3 gap-3 drag-region shrink-0">
         <div className="h-full">
-          {Object.entries(menuButtons).map(([label, fn], index) => {
-            const rounded =
-              index === 0
-                ? "rounded-l"
-                : index === Object.keys(menuButtons).length - 1
-                  ? "rounded-r"
-                  : "";
-            return (
-              <button
-                onClick={fn}
-                className={`h-full no-drag px-3 py-1.5  hover:bg-muted-hover border border-muted ${rounded} text-sm`}
-              >
-                <span className="capitalize">{label}</span>
-              </button>
-            );
-          })}
+          <ButtonGroup
+            items={["new", "open", "save", "export"]}
+            onSelect={(v) => menuActions[v]()}
+            variant="split"
+            fill
+          />
         </div>
 
-        <div className="w-px h-6 bg-muted mx-2" />
+        <div className="w-px h-6 bg-muted" />
 
-        <select
-          id="editorToolSelect"
-          value={activeTool}
-          onChange={(e) => setActiveTool(e.target.value as EditorTool)}
-          className="no-drag"
-        >
-          {Object.values(EDITOR_TOOLS).map((item: string) => {
-            return (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            );
-          })}
-        </select>
-
-        <div>
-          {MAP_LAYERS.map((l, index) => {
-            const rounded =
-              index === 0
-                ? "rounded-l"
-                : index === MAP_LAYERS.length - 1
-                  ? "rounded-r"
-                  : "";
-            return (
-              <button
-                key={l}
-                onClick={() => setActiveLayer(l)}
-                className={`no-drag px-3 py-1.5 text-sm ${
-                  activeLayer === l
-                    ? "bg-accent text-white"
-                    : "bg-muted hover:bg-muted-hover"
-                } ${rounded}`}
-              >
-                <span className="capitalize">{l}</span>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
+            Tool:
+          </span>
+          <div className="relative">
+            <select
+              id="editorToolSelect"
+              value={activeTool}
+              onChange={(e) => setActiveTool(e.target.value as EditorTool)}
+              className="no-drag bg-muted text-sm text-white border border-muted rounded px-3 py-1.5 pr-7 appearance-none cursor-pointer"
+            >
+              {Object.values(EDITOR_TOOLS).map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+              <i className="bi bi-chevron-down text-xs text-gray-400" />
+            </div>
+          </div>
         </div>
 
-        <div className="w-px h-6 bg-muted mx-2" />
+        {activeTool === EDITOR_TOOLS.Texture && (
+          <>
+            <TextureToolBar />
+            <ButtonGroup
+              items={MAP_LAYERS}
+              selected={activeLayer}
+              onSelect={(v) => setActiveLayer(v as MapLayer)}
+              variant="split"
+            />
+          </>
+        )}
 
-        {activeTool === EDITOR_TOOLS.Texture && <TextureToolBar />}
-        {activeTool === EDITOR_TOOLS.Sprite && <SpritToolBar />}
+        {activeTool === EDITOR_TOOLS.SpriteSheet && <SpriteSheetToolbar />}
 
-        {/* <div className="flex-1" /> */}
+        <div className="flex-1" />
 
         <div className="h-8 flex rounded border border-muted items-center">
           <button
@@ -194,103 +117,39 @@ export default function Toolbar() {
             {map.width}x{map.height}
             {filePath ? ` · ${filePath.split("/").pop()}` : ""}
           </span>
+          <button
+            onClick={() => setShowKeybindModal(true)}
+            className="no-drag ml-1 w-6 h-6 flex items-center justify-center bg-muted hover:bg-muted-hover rounded text-xs text-gray-400"
+            title="Keybindings (?)"
+          >
+            ?
+          </button>
         </div>
       </div>
 
-      {showNewDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-surface border border-muted rounded-lg p-6">
-            <h2 className="text-lg mb-4">New Map</h2>
-            <div className="flex gap-4 mb-4">
-              <label>
-                <span className="text-sm text-gray-400 mr-2">Width:</span>
-                <input
-                  type="number"
-                  min={3}
-                  max={256}
-                  value={newWidth}
-                  onChange={(e) => setNewWidth(Number(e.target.value))}
-                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
-                />
-              </label>
-              <label>
-                <span className="text-sm text-gray-400 mr-2">Height:</span>
-                <input
-                  type="number"
-                  min={3}
-                  max={256}
-                  value={newHeight}
-                  onChange={(e) => setNewHeight(Number(e.target.value))}
-                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
-                />
-              </label>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setShowNewDialog(false)}
-                className="px-4 py-1.5 bg-muted hover:bg-muted-hover rounded text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleNew}
-                className="px-4 py-1.5 bg-accent hover:bg-accent-hover rounded text-sm"
-              >
-                Create
-              </button>
-            </div>
-          </div>
+      <Dialog open={showNewDialog} onClose={() => setShowNewDialog(false)} title="New Map">
+        <div className="flex gap-4 mb-4">
+          <LabeledNumberInput label="Width:" value={newWidth} onChange={setNewWidth} min={3} max={256} />
+          <LabeledNumberInput label="Height:" value={newHeight} onChange={setNewHeight} min={3} max={256} />
         </div>
-      )}
+        <DialogActions
+          onCancel={() => setShowNewDialog(false)}
+          confirmLabel="Create"
+          onConfirm={handleNew}
+        />
+      </Dialog>
 
-      {showResizeDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-surface border border-muted rounded-lg p-6">
-            <h2 className="text-lg mb-4">Resize Map</h2>
-            <p className="text-xs text-gray-400 mb-4">
-              Existing content will be preserved. New cells start empty.
-            </p>
-            <div className="flex gap-4 mb-4">
-              <label>
-                <span className="text-sm text-gray-400 mr-2">Width:</span>
-                <input
-                  type="number"
-                  min={3}
-                  max={256}
-                  value={resizeWidth}
-                  onChange={(e) => setResizeWidth(Number(e.target.value))}
-                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
-                />
-              </label>
-              <label>
-                <span className="text-sm text-gray-400 mr-2">Height:</span>
-                <input
-                  type="number"
-                  min={3}
-                  max={256}
-                  value={resizeHeight}
-                  onChange={(e) => setResizeHeight(Number(e.target.value))}
-                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
-                />
-              </label>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setShowResizeDialog(false)}
-                className="px-4 py-1.5 bg-muted hover:bg-muted-hover rounded text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleResize}
-                className="px-4 py-1.5 bg-accent hover:bg-accent-hover rounded text-sm"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
+      <Dialog open={showResizeDialog} onClose={() => setShowResizeDialog(false)} title="Resize Map" description="Existing content will be preserved. New cells start empty.">
+        <div className="flex gap-4 mb-4">
+          <LabeledNumberInput label="Width:" value={resizeWidth} onChange={setResizeWidth} min={3} max={256} />
+          <LabeledNumberInput label="Height:" value={resizeHeight} onChange={setResizeHeight} min={3} max={256} />
         </div>
-      )}
+        <DialogActions
+          onCancel={() => setShowResizeDialog(false)}
+          confirmLabel="Apply"
+          onConfirm={handleResize}
+        />
+      </Dialog>
     </>
   );
 }
