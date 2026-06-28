@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { MapData, MapLayer, Sprite } from "../map/types";
 import { createEmptyMap } from "../map/parser";
-import { EDITOR_TOOLS, EditorTool } from "../types";
+import { EDITOR_TOOLS, EditorTool, SpriteSheetEntry, SheetPickMode } from "../types";
 
 interface TextureEntry {
   id: number;
@@ -59,6 +59,24 @@ interface MapStore {
   newMap: (width: number, height: number) => void;
   setFilePath: (path: string | null) => void;
   setShowNewDialog: (show: boolean) => void;
+  showKeybindModal: boolean;
+  setShowKeybindModal: (show: boolean) => void;
+  spriteSheets: SpriteSheetEntry[];
+  activeSheetIndex: number;
+  activeGroupIndex: number;
+
+  sheetPickMode: SheetPickMode;
+  setSheetPickMode: (mode: SheetPickMode) => void;
+
+  addSpriteSheet: (path: string, dataUrl: string) => void;
+  updateSpriteSheet: (index: number, partial: Partial<SpriteSheetEntry>) => void;
+  setActiveSheetIndex: (index: number) => void;
+  setActiveGroupIndex: (index: number) => void;
+  addSheetGroup: (name: string) => void;
+  removeSheetGroup: (groupIndex: number) => void;
+  toggleFrameInGroup: (groupIndex: number, frameIndex: number) => void;
+  renameSheetGroup: (groupIndex: number, name: string) => void;
+
   resizeMap: (width: number, height: number) => void;
 }
 
@@ -80,7 +98,12 @@ export const useMapStore = create<MapStore>()((set) => ({
   spriteTypes: [],
   filePath: null,
   showNewDialog: false,
+  showKeybindModal: false,
   selectedSpriteIndex: -1,
+  spriteSheets: [],
+  activeSheetIndex: -1,
+  activeGroupIndex: -1,
+  sheetPickMode: "select",
 
   setCell: (row, col, textureId) =>
     set((state) => {
@@ -207,6 +230,9 @@ export const useMapStore = create<MapStore>()((set) => ({
       map: data,
       textures: [],
       spriteTypes: [],
+      spriteSheets: [],
+      activeSheetIndex: -1,
+      activeGroupIndex: -1,
       filePath: null,
       selectedTexture: 1,
       selectedSpriteType: 0,
@@ -220,6 +246,9 @@ export const useMapStore = create<MapStore>()((set) => ({
       map: createEmptyMap(width, height),
       textures: [],
       spriteTypes: [],
+      spriteSheets: [],
+      activeSheetIndex: -1,
+      activeGroupIndex: -1,
       filePath: null,
       selectedTexture: 1,
       selectedSpriteType: 0,
@@ -230,6 +259,102 @@ export const useMapStore = create<MapStore>()((set) => ({
 
   setFilePath: (path) => set({ filePath: path }),
   setShowNewDialog: (show) => set({ showNewDialog: show }),
+  setShowKeybindModal: (show) => set({ showKeybindModal: show }),
+
+  addSpriteSheet: (path, dataUrl) =>
+    set((state) => {
+      const sheet: SpriteSheetEntry = {
+        path,
+        dataUrl,
+        detectedTextures: [],
+        bgColor: null,
+        alphaColor: null,
+        showAlphaMask: false,
+        groups: [],
+        cropBox: null,
+        edgePadding: 0,
+        ignoreColors: [],
+      };
+      const index = state.spriteSheets.length;
+      return {
+        spriteSheets: [...state.spriteSheets, sheet],
+        activeSheetIndex: index,
+        activeGroupIndex: -1,
+      };
+    }),
+
+  updateSpriteSheet: (index, partial) =>
+    set((state) => {
+      const sheets = [...state.spriteSheets];
+      if (index >= 0 && index < sheets.length) {
+        sheets[index] = { ...sheets[index], ...partial };
+      }
+      return { spriteSheets: sheets };
+    }),
+
+  setActiveSheetIndex: (index) => set({ activeSheetIndex: index, activeGroupIndex: -1 }),
+
+  setActiveGroupIndex: (index) => set({ activeGroupIndex: index }),
+  setSheetPickMode: (mode) => set({ sheetPickMode: mode }),
+
+  addSheetGroup: (name) =>
+    set((state) => {
+      const { activeSheetIndex, spriteSheets } = state;
+      if (activeSheetIndex < 0) return state;
+      const sheets = [...spriteSheets];
+      const sheet = { ...sheets[activeSheetIndex] };
+      sheet.groups = [...sheet.groups, { name, frames: [] }];
+      sheets[activeSheetIndex] = sheet;
+      return { spriteSheets: sheets, activeGroupIndex: sheet.groups.length - 1 };
+    }),
+
+  removeSheetGroup: (groupIndex) =>
+    set((state) => {
+      const { activeSheetIndex, spriteSheets, activeGroupIndex } = state;
+      if (activeSheetIndex < 0) return state;
+      const sheets = [...spriteSheets];
+      const sheet = { ...sheets[activeSheetIndex] };
+      sheet.groups = sheet.groups.filter((_, i) => i !== groupIndex);
+      sheets[activeSheetIndex] = sheet;
+      return {
+        spriteSheets: sheets,
+        activeGroupIndex:
+          activeGroupIndex === groupIndex
+            ? -1
+            : activeGroupIndex > groupIndex
+              ? activeGroupIndex - 1
+              : activeGroupIndex,
+      };
+    }),
+
+  toggleFrameInGroup: (groupIndex, frameIndex) =>
+    set((state) => {
+      const { activeSheetIndex, spriteSheets } = state;
+      if (activeSheetIndex < 0) return state;
+      const sheets = [...spriteSheets];
+      const sheet = { ...sheets[activeSheetIndex] };
+      const group = { ...sheet.groups[groupIndex] };
+      const idx = group.frames.indexOf(frameIndex);
+      group.frames = idx >= 0
+        ? group.frames.filter((f) => f !== frameIndex)
+        : [...group.frames, frameIndex];
+      sheet.groups = sheet.groups.map((g, i) => (i === groupIndex ? group : g));
+      sheets[activeSheetIndex] = sheet;
+      return { spriteSheets: sheets };
+    }),
+
+  renameSheetGroup: (groupIndex, name) =>
+    set((state) => {
+      const { activeSheetIndex, spriteSheets } = state;
+      if (activeSheetIndex < 0) return state;
+      const sheets = [...spriteSheets];
+      const sheet = { ...sheets[activeSheetIndex] };
+      sheet.groups = sheet.groups.map((g, i) =>
+        i === groupIndex ? { ...g, name } : g,
+      );
+      sheets[activeSheetIndex] = sheet;
+      return { spriteSheets: sheets };
+    }),
 
   resizeMap: (width, height) =>
     set((state) => {
