@@ -3,6 +3,17 @@ import { useMapStore } from "../store/mapStore";
 import { TEXTURE_COLORS } from "../map/constants";
 import { getCachedTexture } from "../utils/textureCache";
 
+function getCanvasTheme() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    surface: s.getPropertyValue("--color-surface-canvas").trim(),
+    emptyCell: s.getPropertyValue("--color-empty-cell").trim(),
+    gridLine: s.getPropertyValue("--color-grid-line").trim(),
+    selection: s.getPropertyValue("--color-selection").trim(),
+    hoverOverlay: s.getPropertyValue("--color-hover-overlay").trim(),
+  };
+}
+
 function drawSpriteFallback(
   ctx: CanvasRenderingContext2D,
   sx: number,
@@ -178,7 +189,8 @@ export default function GridEditor() {
     canvas.width = w;
     canvas.height = h;
 
-    ctx.fillStyle = "#1a1a1a";
+    const theme = getCanvasTheme();
+    ctx.fillStyle = theme.surface;
     ctx.fillRect(0, 0, w, h);
 
     const grid = map[activeLayer];
@@ -211,13 +223,13 @@ export default function GridEditor() {
             ctx.fillRect(x, y, cellSize, cellSize);
           }
         } else {
-          ctx.fillStyle = "#2a2a2a";
+          ctx.fillStyle = theme.emptyCell;
           ctx.fillRect(x, y, cellSize, cellSize);
         }
       }
     }
 
-    ctx.strokeStyle = "#333";
+    ctx.strokeStyle = theme.gridLine;
     ctx.lineWidth = 1;
     for (let r = 0; r <= map.height; r++) {
       ctx.beginPath();
@@ -264,7 +276,7 @@ export default function GridEditor() {
         const s = map.sprites[si];
         const sx = s.x * cellSize;
         const sy = s.y * cellSize;
-        ctx.strokeStyle = "#00ffff";
+        ctx.strokeStyle = theme.selection;
         ctx.lineWidth = 2;
         ctx.strokeRect(
           sx - cellSize / 2 - 1,
@@ -276,7 +288,7 @@ export default function GridEditor() {
     }
 
     if (hoverPos) {
-      ctx.fillStyle = "rgba(255,255,255,0.12)";
+      ctx.fillStyle = theme.hoverOverlay;
       ctx.fillRect(
         hoverPos.c * cellSize,
         hoverPos.r * cellSize,
@@ -297,7 +309,7 @@ export default function GridEditor() {
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-hidden flex items-center justify-center bg-[#1a1a1a]"
+      className="flex-1 overflow-hidden flex items-center justify-center bg-surface-canvas"
     >
       <canvas
         ref={canvasRef}

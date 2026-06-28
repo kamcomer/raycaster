@@ -54,19 +54,19 @@ export default function SpritePalette() {
 
   return (
     <>
-      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-[#0f3460] flex items-center justify-between">
+      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-muted flex items-center justify-between">
         Sprites
         <div className="flex flex-row">
           <button
             onClick={handleAddSpriteType}
-            className="no-drag px-3 py-1.5 hover:bg-[#1a5276] border border-[#0f3460] rounded-l text-sm ml-2"
+            className="no-drag px-3 py-1.5 hover:bg-muted-hover border border-muted rounded-l text-sm ml-2"
           >
             +
           </button>
 
           <button
             onClick={handleImportSpriteTypeDir}
-            className="no-drag px-3 py-1.5 hover:bg-[#1a5276] border border-[#0f3460] rounded-r text-sm"
+            className="no-drag px-3 py-1.5 hover:bg-muted-hover border border-muted rounded-r text-sm"
           >
             <i className="bi bi-folder" />
           </button>
@@ -85,7 +85,7 @@ export default function SpritePalette() {
                 onClick={() => setSelectedSpriteType(i)}
                 className={`relative aspect-square rounded overflow-hidden border-2 transition-colors ${
                   selectedSpriteType === i
-                    ? "border-[#e94560]"
+                    ? "border-accent"
                     : "border-transparent hover:border-gray-600"
                 }`}
                 title={st.path.split("/").pop() || ""}

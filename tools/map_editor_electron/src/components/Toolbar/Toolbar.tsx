@@ -111,7 +111,7 @@ export default function Toolbar() {
 
   return (
     <>
-      <div className="h-12 bg-[#16213e] border-b border-[#0f3460] flex items-center pl-[76px] pr-3 gap-2 drag-region shrink-0 justify-around">
+      <div className="h-12 bg-surface-dark border-b border-muted flex items-center pl-[76px] pr-3 gap-2 drag-region shrink-0 justify-around">
         <div className="h-full">
           {Object.entries(menuButtons).map(([label, fn], index) => {
             const rounded =
@@ -123,7 +123,7 @@ export default function Toolbar() {
             return (
               <button
                 onClick={fn}
-                className={`h-full no-drag px-3 py-1.5  hover:bg-[#1a5276] border border-[#0f3460] ${rounded} text-sm`}
+                className={`h-full no-drag px-3 py-1.5  hover:bg-muted-hover border border-muted ${rounded} text-sm`}
               >
                 <span className="capitalize">{label}</span>
               </button>
@@ -131,7 +131,7 @@ export default function Toolbar() {
           })}
         </div>
 
-        <div className="w-px h-6 bg-[#0f3460] mx-2" />
+        <div className="w-px h-6 bg-muted mx-2" />
 
         <select
           id="editorToolSelect"
@@ -162,8 +162,8 @@ export default function Toolbar() {
                 onClick={() => setActiveLayer(l)}
                 className={`no-drag px-3 py-1.5 text-sm ${
                   activeLayer === l
-                    ? "bg-[#e94560] text-white"
-                    : "bg-[#0f3460] hover:bg-[#1a5276]"
+                    ? "bg-accent text-white"
+                    : "bg-muted hover:bg-muted-hover"
                 } ${rounded}`}
               >
                 <span className="capitalize">{l}</span>
@@ -172,21 +172,21 @@ export default function Toolbar() {
           })}
         </div>
 
-        <div className="w-px h-6 bg-[#0f3460] mx-2" />
+        <div className="w-px h-6 bg-muted mx-2" />
 
         {activeTool === EDITOR_TOOLS.Texture && <TextureToolBar />}
         {activeTool === EDITOR_TOOLS.Sprite && <SpritToolBar />}
 
         {/* <div className="flex-1" /> */}
 
-        <div className="h-8 flex rounded border border-[#0f3460] items-center">
+        <div className="h-8 flex rounded border border-muted items-center">
           <button
             onClick={() => {
               setResizeWidth(map.width);
               setResizeHeight(map.height);
               setShowResizeDialog(true);
             }}
-            className="no-drag px-2 bg-[#0f3460] hover:bg-[#1a5276] rounded text-xs"
+            className="no-drag px-2 bg-muted hover:bg-muted-hover rounded text-xs"
           >
             Resize
           </button>
@@ -199,7 +199,7 @@ export default function Toolbar() {
 
       {showNewDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#1a1a2e] border border-[#0f3460] rounded-lg p-6">
+          <div className="bg-surface border border-muted rounded-lg p-6">
             <h2 className="text-lg mb-4">New Map</h2>
             <div className="flex gap-4 mb-4">
               <label>
@@ -210,7 +210,7 @@ export default function Toolbar() {
                   max={256}
                   value={newWidth}
                   onChange={(e) => setNewWidth(Number(e.target.value))}
-                  className="w-20 bg-[#16213e] border border-[#0f3460] rounded px-2 py-1 text-sm"
+                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
                 />
               </label>
               <label>
@@ -221,20 +221,20 @@ export default function Toolbar() {
                   max={256}
                   value={newHeight}
                   onChange={(e) => setNewHeight(Number(e.target.value))}
-                  className="w-20 bg-[#16213e] border border-[#0f3460] rounded px-2 py-1 text-sm"
+                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
                 />
               </label>
             </div>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowNewDialog(false)}
-                className="px-4 py-1.5 bg-[#0f3460] hover:bg-[#1a5276] rounded text-sm"
+                className="px-4 py-1.5 bg-muted hover:bg-muted-hover rounded text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleNew}
-                className="px-4 py-1.5 bg-[#e94560] hover:bg-[#c73e54] rounded text-sm"
+                className="px-4 py-1.5 bg-accent hover:bg-accent-hover rounded text-sm"
               >
                 Create
               </button>
@@ -245,7 +245,7 @@ export default function Toolbar() {
 
       {showResizeDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#1a1a2e] border border-[#0f3460] rounded-lg p-6">
+          <div className="bg-surface border border-muted rounded-lg p-6">
             <h2 className="text-lg mb-4">Resize Map</h2>
             <p className="text-xs text-gray-400 mb-4">
               Existing content will be preserved. New cells start empty.
@@ -259,7 +259,7 @@ export default function Toolbar() {
                   max={256}
                   value={resizeWidth}
                   onChange={(e) => setResizeWidth(Number(e.target.value))}
-                  className="w-20 bg-[#16213e] border border-[#0f3460] rounded px-2 py-1 text-sm"
+                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
                 />
               </label>
               <label>
@@ -270,20 +270,20 @@ export default function Toolbar() {
                   max={256}
                   value={resizeHeight}
                   onChange={(e) => setResizeHeight(Number(e.target.value))}
-                  className="w-20 bg-[#16213e] border border-[#0f3460] rounded px-2 py-1 text-sm"
+                  className="w-20 bg-surface-dark border border-muted rounded px-2 py-1 text-sm"
                 />
               </label>
             </div>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowResizeDialog(false)}
-                className="px-4 py-1.5 bg-[#0f3460] hover:bg-[#1a5276] rounded text-sm"
+                className="px-4 py-1.5 bg-muted hover:bg-muted-hover rounded text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleResize}
-                className="px-4 py-1.5 bg-[#e94560] hover:bg-[#c73e54] rounded text-sm"
+                className="px-4 py-1.5 bg-accent hover:bg-accent-hover rounded text-sm"
               >
                 Apply
               </button>

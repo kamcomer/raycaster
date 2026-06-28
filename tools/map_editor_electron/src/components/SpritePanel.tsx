@@ -24,7 +24,7 @@ export default function SpritePanel() {
   };
 
   return (
-    <div className="h-32 bg-[#16213e] border-t border-[#0f3460] shrink-0 flex flex-col">
+    <div className="h-32 bg-surface-dark border-t border-muted shrink-0 flex flex-col">
       <div className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
         Sprites ({sprites.length})
       </div>
@@ -40,8 +40,8 @@ export default function SpritePanel() {
                 className={
                   `flex items-center gap-2 rounded px-2 py-1 text-xs cursor-pointer ` +
                   (isSelected
-                    ? "bg-[#1a5276] ring-2 ring-cyan-400"
-                    : "bg-[#0f3460] hover:bg-[#1a5276]")
+                    ? "bg-muted-hover ring-2 ring-cyan-400"
+                    : "bg-muted hover:bg-muted-hover")
                 }
               >
                 {st && (
@@ -69,7 +69,7 @@ export default function SpritePanel() {
         </div>
       </div>
       {selected && (
-        <div className="px-3 py-2 border-t border-[#0f3460] flex items-center gap-4 text-xs">
+        <div className="px-3 py-2 border-t border-muted flex items-center gap-4 text-xs">
           <label className="flex items-center gap-1.5">
             <span className="text-gray-400">X</span>
             <input
@@ -81,7 +81,7 @@ export default function SpritePanel() {
                   x: parseFloat(e.target.value) || 0,
                 })
               }
-              className="w-16 bg-[#0f3460] rounded px-1.5 py-0.5 text-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-16 bg-muted rounded px-1.5 py-0.5 text-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </label>
           <label className="flex items-center gap-1.5">
@@ -95,7 +95,7 @@ export default function SpritePanel() {
                   y: parseFloat(e.target.value) || 0,
                 })
               }
-              className="w-16 bg-[#0f3460] rounded px-1.5 py-0.5 text-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-16 bg-muted rounded px-1.5 py-0.5 text-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </label>
           <span className="text-gray-500 ml-auto">arrow keys to nudge</span>

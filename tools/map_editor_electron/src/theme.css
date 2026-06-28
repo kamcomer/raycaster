@@ -1,0 +1,14 @@
+:root {
+  --color-surface: #1a1a2e;
+  --color-surface-dark: #16213e;
+  --color-surface-canvas: #1a1a1a;
+  --color-muted: #0f3460;
+  --color-muted-hover: #1a5276;
+  --color-accent: #e94560;
+  --color-accent-hover: #c73e54;
+  --color-primary: #e0e0e0;
+  --color-empty-cell: #2a2a2a;
+  --color-grid-line: #333;
+  --color-selection: #00ffff;
+  --color-hover-overlay: rgba(255, 255, 255, 0.12);
+}

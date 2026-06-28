@@ -15,6 +15,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     titleBarStyle: "hiddenInset",
+    // mirrors --color-surface in src/theme.css
     backgroundColor: "#1a1a2e",
     webPreferences: {
       preload: join(__dirname, "preload.js"),

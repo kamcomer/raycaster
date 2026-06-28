@@ -24,8 +24,8 @@ export default function TextureToolBar() {
         onClick={() => handleSelectPaintTool("paint")}
         className={`no-drag px-3 py-1.5 rounded text-sm ${
           paintTool === "paint"
-            ? "bg-[#e94560] text-white"
-            : "bg-[#0f3460] hover:bg-[#1a5276]"
+            ? "bg-accent text-white"
+            : "bg-muted hover:bg-muted-hover"
         }`}
       >
         Paint
@@ -34,8 +34,8 @@ export default function TextureToolBar() {
         onClick={() => handleSelectPaintTool("erase")}
         className={`no-drag px-3 py-1.5 rounded text-sm ${
           paintTool === "erase"
-            ? "bg-[#e94560] text-white"
-            : "bg-[#0f3460] hover:bg-[#1a5276]"
+            ? "bg-accent text-white"
+            : "bg-muted hover:bg-muted-hover"
         }`}
       >
         Erase

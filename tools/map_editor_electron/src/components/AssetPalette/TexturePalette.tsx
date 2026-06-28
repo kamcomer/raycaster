@@ -62,19 +62,19 @@ export default function TexturePalette() {
 
   return (
     <>
-      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-[#0f3460] flex items-center justify-between">
+      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-muted flex items-center justify-between">
         Textures
         <div className="flex flex-row">
           <button
             onClick={handleAddTexture}
-            className="no-drag px-3 py-1.5 hover:bg-[#1a5276] border border-[#0f3460] rounded-l text-sm ml-2"
+            className="no-drag px-3 py-1.5 hover:bg-muted-hover border border-muted rounded-l text-sm ml-2"
           >
             +
           </button>
 
           <button
             onClick={handleImportTextureDir}
-            className="no-drag px-3 py-1.5 hover:bg-[#1a5276] border border-[#0f3460] rounded-r text-sm"
+            className="no-drag px-3 py-1.5 hover:bg-muted-hover border border-muted rounded-r text-sm"
           >
             <i className="bi bi-folder" />
           </button>
@@ -90,7 +90,7 @@ export default function TexturePalette() {
                 onClick={() => setSelectedTexture(tex.id)}
                 className={`relative aspect-square rounded overflow-hidden border-2 transition-colors ${
                   isSelected
-                    ? "border-[#e94560]"
+                    ? "border-accent"
                     : "border-transparent hover:border-gray-600"
                 }`}
                 title={tex.path.split("/").pop()}
@@ -125,7 +125,7 @@ export default function TexturePalette() {
                 onClick={() => setSelectedTexture(slotId)}
                 className={`aspect-square rounded border-2 flex items-center justify-center text-xs text-gray-600 transition-colors ${
                   isSelected
-                    ? "border-[#e94560] bg-[#1a1a2e]"
+                    ? "border-accent bg-surface"
                     : "border-dashed border-gray-700 hover:border-gray-500"
                 }`}
               >
@@ -137,7 +137,7 @@ export default function TexturePalette() {
             onClick={() => setSelectedTexture(0)}
             className={`aspect-square rounded border-2 flex items-center justify-center text-xs transition-colors ${
               selectedTexture === 0
-                ? "border-[#e94560] bg-[#3a1a1a] text-[#e94560]"
+                ? "border-accent bg-[#3a1a1a] text-accent"
                 : "border-dashed border-gray-700 hover:border-red-700 text-red-800"
             }`}
             title="Eraser"

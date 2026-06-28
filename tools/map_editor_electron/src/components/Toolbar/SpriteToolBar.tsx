@@ -53,13 +53,13 @@ export default function SpritToolBar() {
     <>
       <button
         onClick={handleAddSpriteType}
-        className="no-drag px-3 py-1.5 bg-[#0f3460] hover:bg-[#1a5276] rounded text-sm ml-2"
+        className="no-drag px-3 py-1.5 bg-muted hover:bg-muted-hover rounded text-sm ml-2"
       >
         + Sprite
       </button>
       <button
         onClick={handleAddSpriteTypeDir}
-        className="no-drag px-3 py-1.5 bg-[#0f3460] hover:bg-[#1a5276] rounded text-sm"
+        className="no-drag px-3 py-1.5 bg-muted hover:bg-muted-hover rounded text-sm"
       >
         + Sprite Dir
       </button>

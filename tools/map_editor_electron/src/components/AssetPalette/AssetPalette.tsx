@@ -7,7 +7,7 @@ export default function AssetPalette() {
   const activeTool = useMapStore((s) => s.activeTool);
 
   return (
-    <div className="w-44 bg-[#16213e] border-l border-[#0f3460] flex flex-col shrink-0">
+    <div className="w-44 bg-surface-dark border-l border-muted flex flex-col shrink-0">
       {activeTool === EDITOR_TOOLS.Sprite && <SpritePalette />}
       {activeTool === EDITOR_TOOLS.Texture && <TexturePalette />}
     </div>
