@@ -1,6 +1,11 @@
-#include <raycaster/raycaster.h>
+#include "raycaster/raycaster.h"
+#include "raycaster/renderer.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#define DEFAULT_WIDTH 800
+#define DEFAULT_HEIGHT 600
+#define DEFAULT_FPS_TARGET 120
 
 int main(int argc, char *argv[])
 {
@@ -10,10 +15,11 @@ int main(int argc, char *argv[])
   RcEngineConfig config;
   RcRendererConfig rend_config = {
       .backend = RC_RENDERER_BACKEND_SDL,
+      .screen_mode = RC_RENDERER_SCREEN_MODE_FULLSCREEN,
       .title = "Raycaster",
-      .width = 800,
-      .height = 600,
-      .target_fps = 120,
+      .width = DEFAULT_WIDTH,
+      .height = DEFAULT_HEIGHT,
+      .target_fps = DEFAULT_FPS_TARGET,
       .show_fps = true,
       .use_gpu = false,
       .disable_sprites = true,
@@ -30,8 +36,10 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  const float cam_pos = 3.5;
+
   RcCamera *cam = rc_camera_create(config.rend_config.width, config.rend_config.height);
-  rc_camera_set_position(cam, 3.5, 3.5);
+  rc_camera_set_position(cam, cam_pos, cam_pos);
   rc_camera_set_direction(cam, -1.0, 0.0);
   rc_engine_set_camera(engine, cam);
 
