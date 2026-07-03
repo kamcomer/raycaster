@@ -5,19 +5,18 @@
 
 typedef struct RcCamera RcCamera;
 
-struct RcCamera
-{
-    RcVector pos;
-    RcVector dir;
-    RcVector plane;
-    float fov;
-    uint32_t width;
-    uint32_t height;
+struct RcCamera {
+  RcVector pos;
+  RcVector dir;
+  RcVector plane;
+  float fov;
+  uint32_t width;
+  uint32_t height;
 };
 
 RcCamera *rc_camera_create(uint32_t width, uint32_t height);
 void rc_camera_destroy(RcCamera *cam);
-void rc_camera_set_position(RcCamera *cam, double x, double y);
+void rc_camera_set_position(RcCamera *cam, double pos_x, double pos_y);
 void rc_camera_set_direction(RcCamera *cam, double dir_x, double dir_y);
 void rc_camera_set_fov(RcCamera *cam, float fov_degrees);
 void rc_camera_rotate(RcCamera *cam, float angle);

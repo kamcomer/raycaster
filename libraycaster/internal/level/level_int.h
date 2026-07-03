@@ -1,9 +1,8 @@
 #ifndef LEVEL_INT_H
 #define LEVEL_INT_H
 
-#include "internal/util/general.h"
+#include "kutils/str.h"
 #include "raycaster/level.h"
-#include "raycaster/texture.h"
 
 typedef struct RcLevelVtbl RcLevelVtbl;
 
@@ -13,18 +12,18 @@ struct RcLevel {
 };
 
 struct RcLevelVtbl {
-  uint32_t (*width)(RcLevel *w);
-  uint32_t (*height)(RcLevel *w);
-  uint32_t (*wall)(RcLevel *w, int x, int y);
-  uint32_t (*floor)(RcLevel *w, int x, int y);
-  uint32_t (*ceil)(RcLevel *w, int x, int y);
-  uint32_t (*unit_size)(RcLevel *w);
-  StringArray *(*texture_paths)(RcLevel *w);
-  void (*sprites)(RcLevel *w, RcSprite **out, uint32_t *count);
-  void (*update)(RcLevel *w, float dt);
-  void (*destroy)(RcLevel *w);
+  uint32_t (*width)(RcLevel *level);
+  uint32_t (*height)(RcLevel *level);
+  uint32_t (*wall)(RcLevel *level, int idx_x, int idx_y);
+  uint32_t (*floor)(RcLevel *level, int idx_x, int idx_y);
+  uint32_t (*ceil)(RcLevel *level, int idx_x, int idx_y);
+  uint32_t (*unit_size)(RcLevel *level);
+  StringArray *(*texture_paths)(RcLevel *level);
+  void (*sprites)(RcLevel *level, RcSprite **out, uint32_t *count);
+  void (*update)(RcLevel *level, float delta_t);
+  void (*destroy)(RcLevel *level);
 };
 
-StringArray *level_get_texture_paths(RcLevel *w);
+StringArray *level_get_texture_paths(RcLevel *level);
 
 #endif // LEVEL_INT_H

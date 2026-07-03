@@ -24,7 +24,7 @@ typedef struct RcRendererConfig {
 } RcRendererConfig;
 
 RcRenderer *rc_renderer_create(RcRendererConfig config);
-void rc_renderer_render(struct RcEngine *e);
-void rc_renderer_destroy(RcRenderer *r);
+void rc_renderer_render(struct RcEngine *engine);
+void rc_renderer_destroy(RcRenderer *renderer);
 
 #endif // RENDERER_H

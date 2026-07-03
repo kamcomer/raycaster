@@ -2,7 +2,7 @@
 #define MAP_LEVEL_INT_H
 
 #include "internal/level/level_int.h"
-#include "internal/util/general.h"
+#include "kutils/str.h"
 #include "raycaster/level.h"
 #include <stdint.h>
 #include <stdlib.h>

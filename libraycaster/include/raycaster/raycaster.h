@@ -6,36 +6,32 @@
 #include "engine.h"
 #include "input.h"
 #include "level.h"
-#include "renderer.h"
-#include "types.h"
 
-typedef void (*RcUpdateFn)(void *game_state, RcEngine *engine, float dt);
+typedef void (*RcUpdateFn)(void *game_state, RcEngine *engine, float delt);
 typedef void (*RcRenderFn)(void *game_state, RcEngine *engine);
 
 RcEngine *rc_engine_create(RcEngineConfig config);
-void rc_engine_destroy(RcEngine *e);
+void rc_engine_destroy(RcEngine *engine);
 
-int rc_engine_load_level(RcEngine *e, RcLevel *world);
-void rc_engine_set_level(RcEngine *e, RcLevel *world);
-RcLevel *rc_engine_get_level(RcEngine *e);
+int rc_engine_load_level(RcEngine *engine, RcLevel *world);
+void rc_engine_set_level(RcEngine *engine, RcLevel *world);
+RcLevel *rc_engine_get_level(RcEngine *engine);
 
-void rc_engine_set_camera(RcEngine *e, RcCamera *cam);
-RcCamera *rc_engine_get_camera(RcEngine *e);
+void rc_engine_set_camera(RcEngine *engine, RcCamera *cam);
+RcCamera *rc_engine_get_camera(RcEngine *engine);
 
-RcInput *rc_engine_get_input(RcEngine *e);
+RcInput *rc_engine_get_input(RcEngine *engine);
 
-void rc_engine_set_update_callback(RcEngine *e, RcUpdateFn fn, void *data);
-void rc_engine_set_render_callback(RcEngine *e, RcRenderFn fn, void *data);
+void rc_engine_set_update_callback(RcEngine *engine, RcUpdateFn fn, void *data);
+void rc_engine_set_render_callback(RcEngine *engine, RcRenderFn fn, void *data);
 
-void rc_engine_add_actor(RcEngine *e, RcActor *actor);
-void rc_engine_remove_actor(RcEngine *e, RcActor *actor);
+void rc_engine_add_actor(RcEngine *engine, RcActor *actor);
+void rc_engine_remove_actor(RcEngine *engine, RcActor *actor);
 
-void rc_engine_run(RcEngine *e);
-void rc_engine_stop(RcEngine *e);
-bool rc_engine_is_running(RcEngine *e);
+void rc_engine_run(RcEngine *engine);
+void rc_engine_stop(RcEngine *engine);
+bool rc_engine_is_running(RcEngine *engine);
 
-float rc_engine_get_delta_time(RcEngine *e);
-
-void rc_engine_config_set_defaults(RcEngineConfig *cfg);
+float rc_engine_get_delta_time(RcEngine *engine);
 
 #endif // RAYCASTER_H

@@ -1,7 +1,6 @@
 #ifndef RAYCASTER_INPUT_H
 #define RAYCASTER_INPUT_H
 
-#include "types.h"
 #include <stdbool.h>
 
 typedef struct RcInput RcInput;
@@ -38,9 +37,9 @@ typedef enum {
 } RcInputBackend;
 
 RcInput *rc_input_create(RcInputBackend backend);
-bool rc_input_get_key_down(RcInput *in, RcKey key);
-bool rc_input_get_key_pressed(RcInput *in, RcKey key);
-void rc_input_update(RcInput *in);
-void rc_input_destroy(RcInput *in);
+bool rc_input_get_key_down(RcInput *input, RcKey key);
+bool rc_input_get_key_pressed(RcInput *input, RcKey key);
+void rc_input_update(RcInput *input);
+void rc_input_destroy(RcInput *input);
 
 #endif // RAYCASTER_INPUT_H

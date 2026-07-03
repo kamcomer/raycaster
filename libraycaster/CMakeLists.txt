@@ -28,7 +28,7 @@ FetchContent_Declare(
     GIT_TAG main
     GIT_SHALLOW TRUE
     GIT_SUBMODULES "external/SPIRV-Cross;external/SPIRV-Headers;external/SPIRV-Tools;external/DirectXShaderCompiler"
-)
+  )
 
 set(SDLSHADERCROSS_VENDORED ON)
 FetchContent_MakeAvailable(SDL3)
@@ -36,8 +36,6 @@ FetchContent_MakeAvailable(SDL3_image)
 FetchContent_MakeAvailable(SDL3_shadercross)
 
 set(RAYCASTER_SOURCES
-    src/util/vector.c
-    src/util/general.c
     src/level/level.c
     src/level/map_level.c
     src/input.c
@@ -49,7 +47,7 @@ set(RAYCASTER_SOURCES
     src/asset/texture.c
     src/platform/sdl/sdl_input.c
     src/platform/sdl/sdl_renderer.c
-    ${SHADER_EMBED_SRC}
+    kutils/str.c
 )
 
 set(RAYCASTER_PUBLIC_HEADERS
@@ -61,18 +59,17 @@ set(RAYCASTER_PUBLIC_HEADERS
     include/raycaster/raycaster.h
     include/raycaster/renderer.h
     include/raycaster/engine.h
-    include/raycaster/vector.h
-)
+  )
+
 
 add_library(raycaster STATIC ${RAYCASTER_SOURCES} ${RAYCASTER_PUBLIC_HEADERS})
 
 target_include_directories(raycaster PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_include_directories(raycaster PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/packages/SDL_shadercross/include
 )
 
 target_link_libraries(raycaster PUBLIC SDL3::SDL3 SDL3_image::SDL3_image SDL3_shadercross::SDL3_shadercross)
