@@ -11,7 +11,7 @@ typedef struct {
   bool quit_requested;
 } SdlInputData;
 
-RcInput *rc_sdl_input_create(void);
+AeInput *ae_sdl_input_create(void);
 
 extern RcInputVtbl sdl_input_vtbl;
 #endif

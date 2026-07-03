@@ -5,15 +5,11 @@
 #include "raycaster/renderer.h"
 #include <stdbool.h>
 
-typedef struct RcEngine RcEngine;
+typedef struct AeEngine AeEngine;
 
 typedef struct {
   RcRendererConfig rend_config;
-  const char *map_file;
-  uint32_t strip_count;
   RcInputBackend input_backend;
-} RcEngineConfig;
-
-void rc_engine_config_set_defaults(RcEngineConfig *cfg);
+} AeEngineConfig;
 
 #endif // ENGIN_H

@@ -1,7 +1,7 @@
-#ifndef RAYCASTER_CAMERA_H
-#define RAYCASTER_CAMERA_H
+#ifndef CAMERA_INT_H
+#define CAMERA_INT_H
 
-#include "types.h"
+#include "raycaster/types.h"
 
 typedef struct RcCamera AeCamera;
 
@@ -22,4 +22,4 @@ void ae_camera_set_fov(AeCamera *cam, float fov_degrees);
 void ae_camera_rotate(AeCamera *cam, float angle);
 void rc_camera_get_view_dimensions(AeCamera *cam, uint32_t *width, uint32_t *height);
 
-#endif // RAYCASTER_CAMERA_H
+#endif // CAMERA_INT_H

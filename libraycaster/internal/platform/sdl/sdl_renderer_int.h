@@ -14,7 +14,7 @@ typedef struct {
   uint32_t height;
 } SdlRendererSoftwareBackendData;
 
-RcRenderer *sdl_renderer_create(RcRendererConfig config);
+AeRenderer *sdl_renderer_create(RcRendererConfig config);
 
 extern RcRendererVtbl renderer_vtbl;
 

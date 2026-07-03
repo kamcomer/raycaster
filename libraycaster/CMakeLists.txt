@@ -37,14 +37,14 @@ FetchContent_MakeAvailable(SDL3_shadercross)
 
 set(RAYCASTER_SOURCES
     src/level/level.c
-    src/level/map_level.c
+    src/level/raycaster_level.c
     src/input.c
     src/sim/actor.c
     src/sim/camera.c
     src/sim/engine.c
     src/renderer/renderer.c
     src/renderer/software.c
-    src/asset/texture.c
+    src/resource/texture.c
     src/platform/sdl/sdl_input.c
     src/platform/sdl/sdl_renderer.c
     kutils/str.c

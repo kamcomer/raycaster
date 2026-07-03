@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct RcEngine;
-typedef struct RcRenderer RcRenderer;
+struct AeEngine;
+typedef struct RcRenderer AeRenderer;
 
 typedef enum { RC_RENDERER_BACKEND_SDL } RcRendererBackend;
 typedef enum { RC_RENDERER_SCREEN_MODE_FULLSCREEN } RcRendererScreenMode;
@@ -23,8 +23,8 @@ typedef struct RcRendererConfig {
 
 } RcRendererConfig;
 
-RcRenderer *rc_renderer_create(RcRendererConfig config);
-void rc_renderer_render(struct RcEngine *engine);
-void rc_renderer_destroy(RcRenderer *renderer);
+AeRenderer *rc_renderer_create(RcRendererConfig config);
+void rc_renderer_render(struct AeEngine *engine);
+void ae_renderer_destroy(AeRenderer *renderer);
 
 #endif // RENDERER_H

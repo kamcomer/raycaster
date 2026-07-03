@@ -5,7 +5,7 @@
 #include "internal/renderer_int.h"
 #include <stdlib.h>
 
-RcRenderer *rc_renderer_create(RcRendererConfig config)
+AeRenderer *rc_renderer_create(RcRendererConfig config)
 {
   switch (config.backend) {
   case RC_RENDERER_BACKEND_SDL:
@@ -15,12 +15,12 @@ RcRenderer *rc_renderer_create(RcRendererConfig config)
 }
 
 void rc_renderer_render(RcEngine *e) { e->renderer->vtbl->render(e); }
-void rc_renderer_destroy(RcRenderer *r)
+void ae_renderer_destroy(AeRenderer *r)
 {
   if (!r)
     return;
   r->vtbl->destroy(r);
   free(r);
 }
-void *rc_renderer_get_renderer(RcRenderer *r) { return r->vtbl->get_renderer(r); }
-void *rc_renderer_get_window(RcRenderer *r) { return r->vtbl->get_window(r); }
+void *rc_renderer_get_renderer(AeRenderer *r) { return r->vtbl->get_renderer(r); }
+void *rc_renderer_get_window(AeRenderer *r) { return r->vtbl->get_window(r); }

@@ -60,7 +60,7 @@ static void render_sprites(RcEngine *e, uint32_t *framebuffer, double *z_buffer,
                            uint32_t h)
 {
   RcCamera *cam = e->camera;
-  RcLevel *world = e->level;
+  AeLevel *world = e->level;
 
   RcSprite *sprites = NULL;
   uint32_t sprite_count = 0;
@@ -155,7 +155,7 @@ static void render_walls(RcEngine *e, uint32_t *framebuffer, double *z_buffer, u
                          uint32_t h)
 {
   RcCamera *cam = e->camera;
-  RcLevel *world = e->level;
+  AeLevel *world = e->level;
 
   for (uint32_t x = 0; x < w; x++) {
     double camera_x = 2 * x / (double)w - 1.0;

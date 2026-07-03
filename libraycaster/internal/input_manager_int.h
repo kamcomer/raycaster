@@ -11,10 +11,10 @@ struct RcInput {
 };
 
 struct RcInputVtbl {
-  bool (*down)(RcInput *input, RcKey key);
-  bool (*pressed)(RcInput *input, RcKey key);
-  void (*update)(RcInput *input);
-  void (*destroy)(RcInput *input);
+  bool (*down)(AeInput *input, RcKey key);
+  bool (*pressed)(AeInput *input, RcKey key);
+  void (*update)(AeInput *input);
+  void (*destroy)(AeInput *input);
 };
 
 #endif // INPUT_INT_H

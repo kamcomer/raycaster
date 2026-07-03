@@ -155,7 +155,7 @@ static bool get_input_presssed(SdlInputData *data, RcKey key)
   return data->keyboard_state[sc] && !data->prev_keyboard_state[sc];
 }
 
-RcInput *rc_sdl_input_create(void)
+AeInput *ae_sdl_input_create(void)
 {
   SdlInputData *data = calloc(1, sizeof(SdlInputData));
   if (!data)
@@ -164,7 +164,7 @@ RcInput *rc_sdl_input_create(void)
   data->keyboard_state = SDL_GetKeyboardState(NULL);
   data->quit_requested = false;
 
-  RcInput *in = malloc(sizeof(RcInput));
+  AeInput *in = malloc(sizeof(AeInput));
   if (!in) {
     destroy_data(data);
     return NULL;
@@ -175,13 +175,13 @@ RcInput *rc_sdl_input_create(void)
 }
 
 // RcInput Vtbl implementation
-static bool sdl_input_down(RcInput *in, RcKey key) { return get_input_down(in->impl, key); }
+static bool sdl_input_down(AeInput *in, RcKey key) { return get_input_down(in->impl, key); }
 
-static bool sdl_input_pressed(RcInput *in, RcKey key) { return get_input_presssed(in->impl, key); }
+static bool sdl_input_pressed(AeInput *in, RcKey key) { return get_input_presssed(in->impl, key); }
 
-static void sdl_input_update(RcInput *in) { update_data(in->impl); }
+static void sdl_input_update(AeInput *in) { update_data(in->impl); }
 
-static void sdl_input_destroy(RcInput *in)
+static void sdl_input_destroy(AeInput *in)
 {
   destroy_data(in->impl);
   free(in);

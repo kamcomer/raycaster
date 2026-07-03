@@ -12,15 +12,15 @@ static void destroy_impl(SdlRendererSoftwareBackendData *data)
   free(data);
 }
 
-static void destroy(RcRenderer *r) { destroy_impl(r->impl); }
+static void destroy(AeRenderer *r) { destroy_impl(r->impl); }
 
-static void *get_renderer(RcRenderer *r)
+static void *get_renderer(AeRenderer *r)
 {
   SdlRendererSoftwareBackendData *data = r->impl;
   return data->renderer;
 }
 
-static void *get_window(RcRenderer *r)
+static void *get_window(AeRenderer *r)
 {
   SdlRendererSoftwareBackendData *data = r->impl;
   return data->window;
@@ -36,7 +36,7 @@ static void render(RcEngine *e)
   SDL_RenderPresent(data->renderer);
 }
 
-static RcRenderer *create_software_renderer(RcRendererConfig config)
+static AeRenderer *create_software_renderer(RcRendererConfig config)
 {
   SdlRendererSoftwareBackendData *data = calloc(1, sizeof(SdlRendererSoftwareBackendData));
   data->window =
@@ -53,7 +53,7 @@ static RcRenderer *create_software_renderer(RcRendererConfig config)
     return NULL;
   }
 
-  RcRenderer *r = malloc(sizeof(RcRenderer));
+  AeRenderer *r = malloc(sizeof(AeRenderer));
   if (!r) {
     destroy_impl(data);
     return NULL;
@@ -78,7 +78,7 @@ static RcRenderer *create_software_renderer(RcRendererConfig config)
   return r;
 }
 
-RcRenderer *sdl_renderer_create(RcRendererConfig config)
+AeRenderer *sdl_renderer_create(RcRendererConfig config)
 {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());

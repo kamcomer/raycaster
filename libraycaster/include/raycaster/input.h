@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-typedef struct RcInput RcInput;
+typedef struct RcInput AeInput;
 
 typedef enum {
   RC_KEY_UNKNOWN = 0,
@@ -36,10 +36,10 @@ typedef enum {
   RC_INPUT_BACKEND_SDL,
 } RcInputBackend;
 
-RcInput *rc_input_create(RcInputBackend backend);
-bool rc_input_get_key_down(RcInput *input, RcKey key);
-bool rc_input_get_key_pressed(RcInput *input, RcKey key);
-void rc_input_update(RcInput *input);
-void rc_input_destroy(RcInput *input);
+AeInput *ae_input_create(RcInputBackend backend);
+bool ae_input_get_key_down(AeInput *input, RcKey key);
+bool ae_input_get_key_pressed(AeInput *input, RcKey key);
+void ae_input_update(AeInput *input);
+void ae_input_destroy(AeInput *input);
 
 #endif // RAYCASTER_INPUT_H

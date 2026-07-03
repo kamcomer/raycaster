@@ -1,18 +1,25 @@
 #ifndef ENGINE_INT_H
 #define ENGINE_INT_H
 
+#include "internal/resource/texture_int.h"
+#include "raycaster/engine.h"
 #include "raycaster/raycaster.h"
 
-struct RcEngine {
-  RcEngineConfig config;
-  RcRenderer *renderer;
-  RcLevel *level;
-  RcCamera *camera;
-  RcInput *input;
+typedef enum AeEngineResult {
+  AE_ENGINE_RES_OK,
+  AE_ENGINE_RES_INVD_ARG,
+  AE_ENGINE_RES_ALLOC_ERR,
+} AeengineResult;
 
+struct AeEngine {
+  AeRenderer *renderer;
+  AeLevel *level;
+  AeCamera *camera;
+  AeInput *input;
   void *game_state;
-  RcUpdateFn update_fn;
-  RcRenderFn render_fn;
+  AeTextureManager texture_manager;
+  AeEngineConfig config;
+
   bool running;
   float delta_time;
 

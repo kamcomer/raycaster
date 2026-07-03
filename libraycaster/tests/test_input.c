@@ -1,5 +1,5 @@
+#include "internal/input_manager_int.h"
 #include "raycaster/input.h"
-#include "internal/input/input_int.h"
 #include "unity.h"
 
 #include <stdlib.h>
