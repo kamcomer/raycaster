@@ -6,6 +6,7 @@ project(alpha_engine VERSION 0.1 LANGUAGES C)
 
 # Generate a compile commands file for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_BUILD_TYPE Debug)
 
 # Enable compiler warnings
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
