@@ -1,5 +1,4 @@
-#include "raycaster/raycaster.h"
-#include "raycaster/renderer.h"
+#include "alpha.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -12,11 +11,11 @@ int main(int argc, char *argv[])
   (void)argc;
   (void)argv;
 
-  AeEngineConfig config;
-  RcRendererConfig rend_config = {
-      .backend = RC_RENDERER_BACKEND_SDL,
-      .screen_mode = RC_RENDERER_SCREEN_MODE_FULLSCREEN,
-      .title = "Raycaster",
+  AEngineConfig config;
+  ARendererConfig rend_config = {
+      .backend = A_RENDERER_BACKEND_SDL,
+      .screen_mode = A_RENDERER_SCREEN_MODE_FULLSCREEN,
+      .technique = A_RENDERER_TECHNIQUE_RAYCASTER,
       .width = DEFAULT_WIDTH,
       .height = DEFAULT_HEIGHT,
       .target_fps = DEFAULT_FPS_TARGET,
@@ -26,36 +25,30 @@ int main(int argc, char *argv[])
   };
 
   config.rend_config = rend_config;
-  config.input_backend = RC_INPUT_BACKEND_SDL;
+  config.input_backend = A_INPUT_BACKEND_SDL;
 
-  AeEngine *engine = rc_engine_create(config);
-  if (!engine) {
+  AEngine *engine;
+  AResult res = a_engine_create(config, &engine);
+  if (res != A_RES_OK) {
     fprintf(stderr, "Failed to create engine\n");
     return 1;
   }
 
-  const float cam_pos = 3.5;
-
-  AeCamera *cam = rc_camera_create(config.rend_config.width, config.rend_config.height);
-  ae_camera_set_position(cam, cam_pos, cam_pos);
-  ae_camera_set_direction(cam, -1.0, 0.0);
-  ae_engine_set_camera(engine, cam);
-
-  AeLevel *level = rc_level_load_from_file("assets/maps/map.txt");
+  ALevel *level = a_level_load_from_file("assets/maps/map.txt");
   if (!level) {
     fprintf(stderr, "Failed to load level\n");
-    ae_engine_destroy(engine);
+    a_engine_destroy(engine);
     return 1;
   }
 
-  ae_engine_load_level(engine, level);
+  a_engine_load_level(engine, level);
 
   printf("Starting game loop...\n");
   printf("Controls: W/S/A/D to move, Left/Right arrows to rotate, ESC to quit\n");
 
-  ae_engine_run(engine);
+  a_engine_run(engine);
 
-  ae_engine_destroy(engine);
+  a_engine_destroy(engine);
 
   return 0;
 }

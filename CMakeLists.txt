@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.19)
 
 # Set the project name and version
-project(raycaster VERSION 0.1 LANGUAGES C)
+project(alpha_engine VERSION 0.1 LANGUAGES C)
 
 # Generate a compile commands file for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -12,10 +12,8 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Add the raycaster library
-add_subdirectory(libraycaster)
+add_subdirectory(libalpha)
 
-# Add game
 add_subdirectory(demo_game)
 
 # Custom targets
