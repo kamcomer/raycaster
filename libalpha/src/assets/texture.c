@@ -3,7 +3,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <string.h>
 
-AResult a_texture_load_from_file(const char *file_path, ATexture **out)
+AResult a_texture_load_from_file(const char *file_path, ATexture *out)
 {
   SDL_Surface *texture_surface = IMG_Load(file_path);
   if (!texture_surface) {
@@ -18,8 +18,8 @@ AResult a_texture_load_from_file(const char *file_path, ATexture **out)
     return A_RES_BACKEND_ERR;
   }
 
-  AResult res = a_texture_create((uint32_t *)formatted_surface->pixels, formatted_surface->w,
-                                 formatted_surface->h, out);
+  AResult res = a_texture_init((uint32_t *)formatted_surface->pixels, formatted_surface->w,
+                               formatted_surface->h, out);
 
   SDL_DestroySurface(formatted_surface);
 
@@ -169,7 +169,7 @@ AResult a_texture_create(const uint32_t *pixels, size_t width, size_t height, AT
   return A_RES_OK;
 }
 
-AResult a_texture_init(const uint32_t *pixels, size_t width, size_t height, ATexture *out)
+AResult a_texture_init(const uint32_t *pixels, int width, int height, ATexture *out)
 {
   if (!out || !pixels) {
     return A_RES_INVLD_ARG;
@@ -177,7 +177,12 @@ AResult a_texture_init(const uint32_t *pixels, size_t width, size_t height, ATex
 
   *out = (ATexture){0};
 
-  memcpy((void *)pixels, &out->pixels, width * height * sizeof(uint32_t));
+  out->pixels = malloc(width * height * sizeof(uint32_t));
+  if (!out->pixels) {
+    *out = (ATexture){0};
+    return A_RES_ALLOC_ERR;
+  }
+  memcpy(out->pixels, (void *)pixels, width * height * sizeof(uint32));
   if (!out->pixels) {
     *out = (ATexture){0};
     return A_RES_ALLOC_ERR;

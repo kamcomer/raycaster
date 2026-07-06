@@ -40,8 +40,8 @@ typedef size_t ATextureHandle;
 
 typedef struct {
   uint32_t *pixels;
-  uint height;
-  uint width;
+  int height;
+  int width;
 } ATexture;
 
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
   ATextureArray cache;
 } ATextureManager;
 
-AResult a_texture_load_from_file(const char *file_path, ATexture **out);
+AResult a_texture_load_from_file(const char *file_path, ATexture *out);
 
 AResult a_texture_manager_create(size_t cache_size, ATextureManager **out);
 AResult a_texture_array_create(size_t size, ATextureArray **out);
@@ -62,7 +62,7 @@ AResult a_texture_create(const uint32_t *pixels, size_t width, size_t height, AT
 
 AResult a_texture_manager_init(size_t cache_size, ATextureManager *out);
 AResult a_texture_array_init(size_t size, ATextureArray *out);
-AResult a_texture_init(const uint32_t *pixels, size_t width, size_t height, ATexture *out);
+AResult a_texture_init(const uint32_t *pixels, int width, int height, ATexture *out);
 
 void a_texture_manager_destroy(ATextureManager *manager);
 void a_texture_array_destroy(ATextureArray *array);
