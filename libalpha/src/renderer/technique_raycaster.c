@@ -6,15 +6,15 @@
 static void render_floor_ceiling(const AScene *scene, const ADimensions *window_dims,
                                  uint32 *framebuffer)
 {
-  ACamera cam = scene->camera;
+  ACamera *cam = scene->camera;
   uint height = window_dims->height;
   uint width = window_dims->width;
 
   for (uint y = height / 2; y < height; ++y) {
-    float rayDirX0 = cam.dir.x - cam.plane.x;
-    float rayDirY0 = cam.dir.y - cam.plane.y;
-    float rayDirX1 = cam.dir.x + cam.plane.x;
-    float rayDirY1 = cam.dir.y + cam.plane.y;
+    float rayDirX0 = cam->dir.x - cam->plane.x;
+    float rayDirY0 = cam->dir.y - cam->plane.y;
+    float rayDirX1 = cam->dir.x + cam->plane.x;
+    float rayDirY1 = cam->dir.y + cam->plane.y;
 
     int p = y - height / 2;
     if (p == 0)
@@ -30,8 +30,8 @@ static void render_floor_ceiling(const AScene *scene, const ADimensions *window_
     float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / width;
     float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / width;
 
-    float floorX = cam.pos.x + rowDistance * rayDirX0;
-    float floorY = cam.pos.y + rowDistance * rayDirY0;
+    float floorX = cam->pos.x + rowDistance * rayDirX0;
+    float floorY = cam->pos.y + rowDistance * rayDirY0;
 
     for (uint32_t x = 0; x < width; x++) {
       int cellX = (int)(floorX);
@@ -63,7 +63,7 @@ static void render_floor_ceiling(const AScene *scene, const ADimensions *window_
 static void render_sprites(const AScene *scene, const ADimensions *window_dims, uint32 *framebuffer,
                            const double *z_buffer)
 {
-  ACamera cam = scene->camera;
+  ACamera *cam = scene->camera;
   ALevel *level = scene->level;
   uint height = window_dims->height;
   uint width = window_dims->width;
@@ -81,8 +81,8 @@ static void render_sprites(const AScene *scene, const ADimensions *window_dims, 
 
   for (uint32_t i = 0; i < sprite_count; i++) {
     sprite_order[i] = i;
-    sprite_dist[i] = ((cam.pos.x - sprites[i].pos.x) * (cam.pos.x - sprites[i].pos.x) +
-                      (cam.pos.y - sprites[i].pos.y) * (cam.pos.y - sprites[i].pos.y));
+    sprite_dist[i] = ((cam->pos.x - sprites[i].pos.x) * (cam->pos.x - sprites[i].pos.x) +
+                      (cam->pos.y - sprites[i].pos.y) * (cam->pos.y - sprites[i].pos.y));
   }
 
   for (uint32_t i = 0; i < sprite_count - 1; i++) {
@@ -101,12 +101,12 @@ static void render_sprites(const AScene *scene, const ADimensions *window_dims, 
   for (uint32 i = 0; i < sprite_count; i++) {
     ASprite *sprite = &sprites[sprite_order[i]];
 
-    double sprite_x = sprite->pos.x - cam.pos.x;
-    double sprite_y = sprite->pos.y - cam.pos.y;
+    double sprite_x = sprite->pos.x - cam->pos.x;
+    double sprite_y = sprite->pos.y - cam->pos.y;
 
-    double inv_det = 1.0 / (cam.plane.x * cam.dir.y - cam.dir.x * cam.plane.y);
-    double transform_x = inv_det * (cam.dir.y * sprite_x - cam.dir.x * sprite_y);
-    double transform_y = inv_det * (-cam.plane.y * sprite_x + cam.plane.x * sprite_y);
+    double inv_det = 1.0 / (cam->plane.x * cam->dir.y - cam->dir.x * cam->plane.y);
+    double transform_x = inv_det * (cam->dir.y * sprite_x - cam->dir.x * sprite_y);
+    double transform_y = inv_det * (-cam->plane.y * sprite_x + cam->plane.x * sprite_y);
 
     if (transform_y <= 0)
       continue;
@@ -161,18 +161,18 @@ static void render_sprites(const AScene *scene, const ADimensions *window_dims, 
 static void render_walls(const AScene *scene, const ADimensions *window_dims, uint32 *framebuffer,
                          double *z_buffer)
 {
-  ACamera cam = scene->camera;
+  ACamera *cam = scene->camera;
   ALevel *level = scene->level;
   uint height = window_dims->height;
   uint width = window_dims->width;
 
   for (uint32_t x = 0; x < width; x++) {
     double camera_x = 2 * x / (double)width - 1.0;
-    double ray_dir_x = cam.dir.x + cam.plane.x * camera_x;
-    double ray_dir_y = cam.dir.y + cam.plane.y * camera_x;
+    double ray_dir_x = cam->dir.x + cam->plane.x * camera_x;
+    double ray_dir_y = cam->dir.y + cam->plane.y * camera_x;
 
-    int map_x = (int)cam.pos.x;
-    int map_y = (int)cam.pos.y;
+    int map_x = (int)cam->pos.x;
+    int map_y = (int)cam->pos.y;
 
     double side_dist_x, side_dist_y;
     double delta_dist_x = (ray_dir_x == 0) ? 1e30 : fabs(1 / ray_dir_x);
@@ -185,18 +185,18 @@ static void render_walls(const AScene *scene, const ADimensions *window_dims, ui
 
     if (ray_dir_x < 0) {
       step_x = -1;
-      side_dist_x = (cam.pos.x - map_x) * delta_dist_x;
+      side_dist_x = (cam->pos.x - map_x) * delta_dist_x;
     } else {
       step_x = 1;
-      side_dist_x = (map_x + 1.0 - cam.pos.x) * delta_dist_x;
+      side_dist_x = (map_x + 1.0 - cam->pos.x) * delta_dist_x;
     }
 
     if (ray_dir_y < 0) {
       step_y = -1;
-      side_dist_y = (cam.pos.y - map_y) * delta_dist_y;
+      side_dist_y = (cam->pos.y - map_y) * delta_dist_y;
     } else {
       step_y = 1;
-      side_dist_y = (map_y + 1.0 - cam.pos.y) * delta_dist_y;
+      side_dist_y = (map_y + 1.0 - cam->pos.y) * delta_dist_y;
     }
 
     while (hit == 0) {
@@ -238,9 +238,9 @@ static void render_walls(const AScene *scene, const ADimensions *window_dims, ui
 
     double wall_x;
     if (side == 0)
-      wall_x = cam.pos.y + perp_wall_dist * ray_dir_y;
+      wall_x = cam->pos.y + perp_wall_dist * ray_dir_y;
     else
-      wall_x = cam.pos.x + perp_wall_dist * ray_dir_x;
+      wall_x = cam->pos.x + perp_wall_dist * ray_dir_x;
     wall_x -= floor(wall_x);
 
     int tex_x = (int)(wall_x * A_TEXTURE_WIDTH);

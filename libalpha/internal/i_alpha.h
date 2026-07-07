@@ -202,7 +202,7 @@ void a_camera_rotate(ACamera *cam, double angle);
 typedef struct AScene AScene;
 
 struct AScene {
-  ACamera camera;
+  ACamera *camera;
   ALevel *level;
   ATextureArray *textures;
 };
@@ -279,7 +279,7 @@ struct ARendererTechniqueRaycasterData {
   double *zbuffer;
 };
 
-AResult a_renderer_create(ARendererConfig config, ARenderer **out);
+AResult a_renderer_create(AScene *scene, ARendererConfig config, ARenderer **out);
 void a_renderer_destroy(ARenderer *renderer);
 
 void a_renderer_backend_render(const ARendererBackend *backend);
@@ -320,8 +320,8 @@ struct AEngine {
   AAssetManager asset_manager;
   ARenderer *renderer;
   ALevel *level;
-  ACamera *camera;
   AInput *input;
+  AScene *scene;
   void *game_state;
   AEngineConfig config;
 

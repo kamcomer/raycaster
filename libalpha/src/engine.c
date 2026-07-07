@@ -1,3 +1,4 @@
+#include "alpha.h"
 #include "internal/i_alpha.h"
 #include "kutils/str.h"
 
@@ -26,7 +27,21 @@ AResult a_engine_create(AEngineConfig config, AEngine **out)
   engine->running = false;
   engine->config = config;
 
-  AResult res = a_renderer_create(config.rend_config, &engine->renderer);
+  // TODO Remove this, it is a bandaid
+  engine->scene = malloc(sizeof(AScene));
+
+  const float cam_pos = 3.5;
+
+  AResult res =
+      a_camera_create(config.rend_config.width, config.rend_config.height, &engine->scene->camera);
+  if (res != A_RES_OK) {
+    a_engine_destroy(engine);
+    return res;
+  }
+  a_camera_set_position(engine->scene->camera, cam_pos, cam_pos);
+  a_camera_set_direction(engine->scene->camera, -1.0, 0.0);
+
+  res = a_renderer_create(engine->scene, config.rend_config, &engine->renderer);
   if (res != A_RES_OK) {
     a_engine_destroy(engine);
     return res;
@@ -38,18 +53,8 @@ AResult a_engine_create(AEngineConfig config, AEngine **out)
     return res;
   }
 
-  // TODO Remove this, it is a bandaid
-  const float cam_pos = 3.5;
-
-  res = a_camera_create(config.rend_config.width, config.rend_config.height, &engine->camera);
-  if (res != A_RES_OK) {
-    a_engine_destroy(engine);
-    return res;
-  }
-  a_camera_set_position(engine->camera, cam_pos, cam_pos);
-  a_camera_set_direction(engine->camera, -1.0, 0.0);
-
   engine->last_time = SDL_GetTicks();
+  *out = engine;
   return A_RES_OK;
 }
 
@@ -65,10 +70,6 @@ void a_engine_deinit(AEngine *engine)
 
   if (engine->level) {
     a_level_destroy(engine->level);
-  }
-
-  if (engine->camera) {
-    a_camera_destroy(engine->camera);
   }
 
   if (engine->input) {
@@ -100,27 +101,19 @@ int a_engine_load_level(AEngine *engine, ALevel *level)
 
 ALevel *a_engine_get_level(AEngine *engine) { return engine ? engine->level : NULL; }
 
-void a_engine_set_camera(AEngine *engine, ACamera *camera)
-{
-  if (engine) {
-    engine->camera = camera;
-  }
-}
-
-ACamera *a_engine_get_camera(AEngine *engine) { return engine ? engine->camera : NULL; }
-
 AInput *a_engine_get_input_manager(AEngine *engine) { return engine ? engine->input : NULL; }
 
 static void render(AEngine *engine)
 {
-  if (!engine || !engine->camera || !engine->level) {
+  if (!engine || !engine->level) {
     return;
   }
   if (!engine->config.rend_config.use_gpu && !engine->renderer) {
     return;
   }
 
-  a_renderer_backend_render(engine->renderer);
+  a_renderer_technique_process(&engine->renderer->technique);
+  a_renderer_backend_render(&engine->renderer->backend);
 }
 
 static void update(AEngine *engine)
@@ -129,7 +122,7 @@ static void update(AEngine *engine)
     return;
   }
 
-  ACamera *camera = engine->camera;
+  ACamera *camera = engine->scene->camera;
   ALevel *level = engine->level;
 
   AInput *input_manager = engine->input;
@@ -208,14 +201,21 @@ void a_engine_run(AEngine *engine)
     return;
   }
 
+  // TODO: this is hackey
   StringArray *texture_paths = a_level_get_texture_paths(engine->level);
   if (!texture_paths) {
     a_engine_destroy(engine);
     return;
   }
 
-  /* engine->texture_manager = a_texture_load_from_file(texture_paths->items, texture_paths->len);
-   */
+  ATextureArray *texture_array;
+  a_texture_array_create(texture_paths->len, &texture_array);
+  for (uint i = 0; i < texture_paths->len; i++) {
+    a_texture_load_from_file(texture_paths->items[i], &(texture_array->items[i]));
+  }
+
+  engine->scene->textures = texture_array;
+  engine->scene->level = engine->level;
 
   engine->running = true;
 

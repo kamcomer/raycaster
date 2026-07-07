@@ -42,8 +42,8 @@ static AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend 
   return A_RES_OK;
 }
 
-static AResult a_renderer_technique_init(const ARendererBackend *backend, ARendererConfig config,
-                                         ARendererTechnique *out)
+static AResult a_renderer_technique_init(const ARendererBackend *backend, AScene *scene,
+                                         ARendererConfig config, ARendererTechnique *out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -54,7 +54,7 @@ static AResult a_renderer_technique_init(const ARendererBackend *backend, ARende
   switch (config.technique) {
   case A_RENDERER_TECHNIQUE_RAYCASTER: {
     AResult res = a_renderer_technique_raycaster_init(
-        (ARendererTechniqueRaycasterData){NULL, a_renderer_backend_window_dimensions(backend),
+        (ARendererTechniqueRaycasterData){scene, a_renderer_backend_window_dimensions(backend),
                                           a_renderer_backend_framebuffer(backend),
                                           a_renderer_backend_zbuffer(backend)},
         out);
@@ -70,7 +70,7 @@ static AResult a_renderer_technique_init(const ARendererBackend *backend, ARende
   return A_RES_OK;
 }
 
-AResult a_renderer_create(ARendererConfig config, ARenderer **out)
+AResult a_renderer_create(AScene *scene, ARendererConfig config, ARenderer **out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -89,7 +89,7 @@ AResult a_renderer_create(ARendererConfig config, ARenderer **out)
     return res;
   }
 
-  res = a_renderer_technique_init(&renderer->backend, config, &renderer->technique);
+  res = a_renderer_technique_init(&renderer->backend, scene, config, &renderer->technique);
   if (res != A_RES_OK) {
     free(renderer);
     return res;
