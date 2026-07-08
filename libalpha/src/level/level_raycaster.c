@@ -6,11 +6,13 @@ static int parse_grid_rows(FILE *file, uint8_t **grid, int width, int height)
 {
   for (int i = 0; i < height; i++) {
     grid[i] = malloc(width * sizeof(uint8_t));
-    if (!grid[i])
+    if (!grid[i]) {
       return -1;
+    }
     for (int j = 0; j < width; j++) {
-      if (fscanf(file, "%hhu", &grid[i][j]) != 1)
+      if (fscanf(file, "%hhu", &grid[i][j]) != 1) {
         return -1;
+      }
     }
   }
   return 0;
@@ -27,8 +29,9 @@ static int allocate_grid(uint8_t ***grid, int height)
 
 static void destroy_data(LevelRaycasterMapData *data)
 {
-  if (!data)
+  if (!data) {
     return;
+  }
   for (size_t i = 0; i < data->height; i++) {
     free(data->walls ? data->walls[i] : NULL);
     free(data->ceil ? data->ceil[i] : NULL);
@@ -39,8 +42,9 @@ static void destroy_data(LevelRaycasterMapData *data)
   free(data->floor);
   string_array_destroy(&data->tex_paths);
 
-  for (uint32_t i = 0; i < data->sprite_types.len; i++)
+  for (uint32_t i = 0; i < data->sprite_types.len; i++) {
     free(data->sprite_types.items[i].path);
+  }
   free(data->sprite_types.items);
 
   free(data->sprites.items);
@@ -62,8 +66,9 @@ static int parse_texture_section(char *buf, StringArray *paths)
 {
   const char *path = buf;
   char *colon = strchr(buf, ':');
-  if (colon != NULL && colon[1] == ' ')
+  if (colon != NULL && colon[1] == ' ') {
     path = colon + 2;
+  }
 
   return string_array_push(paths, path);
 }
@@ -71,8 +76,9 @@ static int parse_texture_section(char *buf, StringArray *paths)
 static int parse_sprite_type_section(char *buf, ALevelRaycasterSpriteTypes *sprite_types)
 {
   char *colon = strchr(buf, ':');
-  if (!colon)
+  if (!colon) {
     return -1;
+  }
 
   if (colon[1] == ' ') {
     colon += 2;
@@ -83,21 +89,24 @@ static int parse_sprite_type_section(char *buf, ALevelRaycasterSpriteTypes *spri
   float frame_delay = 0.0f;
   int n = sscanf((const char *)colon, "%1023s %d %f", path, &frame_count, &frame_delay);
   if (n >= 1) {
-    if (frame_count < 1)
+    if (frame_count < 1) {
       frame_count = 1;
+    }
 
     if (sprite_types->len == sprite_types->capacity) {
       sprite_types->capacity *= 2;
       sprite_types->items = realloc(sprite_types->items,
                                     sprite_types->capacity * sizeof(ALevelRaycasterSpriteTypeDef));
-      if (!sprite_types->items)
+      if (!sprite_types->items) {
         return -1;
+      }
     }
   }
 
   sprite_types->items[sprite_types->len].path = (char *)malloc(strlen(path) + 1);
-  if (!sprite_types->items[sprite_types->len].path)
+  if (!sprite_types->items[sprite_types->len].path) {
     return -1;
+  }
 
   strcpy(sprite_types->items[sprite_types->len].path, path);
   sprite_types->items[sprite_types->len].frame_count = frame_count;
@@ -109,79 +118,83 @@ static int parse_sprite_type_section(char *buf, ALevelRaycasterSpriteTypes *spri
 static int parse_sprites_section(char *buf, ASpriteArray *sprites,
                                  ALevelRaycasterSpriteTypes *sprite_types)
 {
-  ASprite s;
+  ASprite sprite;
   uint32_t type_id;
-  if (sscanf(buf, "%lf %lf %d", &s.pos.x, &s.pos.y, &type_id) != 3) {
+  if (sscanf(buf, "%lf %lf %d", &sprite.pos.x, &sprite.pos.y, &type_id) != 3) {
     return -1;
   }
 
-  if (type_id < 0)
+  if (type_id < 0) {
     type_id = 0;
+  }
 
   if (type_id >= sprite_types->len && sprite_types->len > 0) {
     return -1;
   }
 
-  s.texture_id = type_id;
-  s.is_dynamic = false;
-  s.pos.mag = 0;
-  s.pos.angle = 0;
+  sprite.texture_id = type_id;
+  sprite.is_dynamic = false;
+  sprite.pos.mag = 0;
+  sprite.pos.angle = 0;
 
   if (sprites->len >= sprites->capacity) {
     sprites->capacity *= 2;
     sprites->items = realloc(sprites->items, sprites->capacity * sizeof(ASprite));
   }
-  sprites->items[sprites->len] = s;
+  sprites->items[sprites->len] = sprite;
   sprites->len++;
   return 0;
 }
 
 // RcLevel Vtbl implementation
-static uint maplevel_width(ALevel *w)
+static uint maplevel_width(ALevel *level)
 {
-  LevelRaycasterMapData *data = (LevelRaycasterMapData *)w->impl;
+  LevelRaycasterMapData *data = (LevelRaycasterMapData *)level->impl;
   return data->width;
 }
 
-static uint maplevel_height(ALevel *w)
+static uint maplevel_height(ALevel *level)
 {
-  LevelRaycasterMapData *data = (LevelRaycasterMapData *)w->impl;
+  LevelRaycasterMapData *data = (LevelRaycasterMapData *)level->impl;
   return data->height;
 }
 
-static uint maplevel_wall(ALevel *w, int x, int y)
+static uint maplevel_wall(ALevel *level, int x, int y)
 {
-  LevelRaycasterMapData *data = (LevelRaycasterMapData *)w->impl;
-  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height)
+  LevelRaycasterMapData *data = (LevelRaycasterMapData *)level->impl;
+  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height) {
     return 0;
+  }
   return data->walls[y][x];
 }
 
-static uint maplevel_floor(ALevel *w, int x, int y)
+static uint maplevel_floor(ALevel *level, int x, int y)
 {
-  LevelRaycasterMapData *data = (LevelRaycasterMapData *)w->impl;
-  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height)
+  LevelRaycasterMapData *data = (LevelRaycasterMapData *)level->impl;
+  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height) {
     return 0;
+  }
   return data->floor[y][x];
 }
 
-static uint maplevel_ceil(ALevel *w, int x, int y)
+static uint maplevel_ceil(ALevel *level, int x, int y)
 {
-  LevelRaycasterMapData *data = (LevelRaycasterMapData *)w->impl;
-  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height)
+  LevelRaycasterMapData *data = (LevelRaycasterMapData *)level->impl;
+  if (x < 0 || (size_t)x >= data->width || y < 0 || (size_t)y >= data->height) {
     return 0;
+  }
   return data->ceil[y][x];
 }
 
-static uint maplevel_unit_size(ALevel *w)
+static uint maplevel_unit_size(ALevel *level)
 {
-  (void)w;
+  (void)level;
   return LEVEL_RAYCASTER_DEFAULT_MAP_UNIT_SIZE;
 }
 
-static void maplevel_sprites(ALevel *w, ASprite **out, uint *count)
+static void maplevel_sprites(ALevel *level, ASprite **out, uint *count)
 {
-  LevelRaycasterMapData *data = (LevelRaycasterMapData *)w->impl;
+  LevelRaycasterMapData *data = (LevelRaycasterMapData *)level->impl;
   *out = data->sprites.items;
   *count = data->sprites.len;
 }
@@ -200,12 +213,14 @@ static void maplevel_update(ALevel *w, float dt)
 
 static void maplevel_destroy(ALevel *w)
 {
-  if (!w)
+  if (!w) {
     return;
+  }
 
   LevelRaycasterMapData *data = (LevelRaycasterMapData *)w->impl;
-  if (!data)
+  if (!data) {
     return;
+  }
 
   destroy_data(data);
   free(w);
@@ -227,10 +242,11 @@ ALevelVtbl maplevel_vtbl = {
 ALevel *a_level_load_from_file(const char *file_path)
 {
   LevelRaycasterMapData *data = calloc(1, sizeof(LevelRaycasterMapData));
-  if (!data)
+  if (!data) {
     return NULL;
+  }
 
-  if (string_array_init(&data->tex_paths, LEVEL_RAYCASTER_DEFAULT_NUM_ASSETS) != 0) {
+  if (string_array_init(&data->tex_paths, LEVEL_RAYCASTER_DEFAULT_NUM_ASSETS + 3) != 0) {
     destroy_data(data);
     return NULL;
   }
@@ -263,8 +279,9 @@ ALevel *a_level_load_from_file(const char *file_path)
 
   while (fgets(buf, sizeof(buf), file)) {
     trim_line(buf);
-    if (buf[0] == '#' || buf[0] == '\0')
+    if (buf[0] == '#' || buf[0] == '\0') {
       continue;
+    }
 
     if (strcmp(buf, "[MAP]") == 0) {
       section = MAP_SECTION_MAP;
@@ -362,8 +379,9 @@ ALevel *a_level_load_from_file(const char *file_path)
 ALevel *a_level_create_empty(uint32_t width, uint32_t height)
 {
   LevelRaycasterMapData *data = calloc(1, sizeof(LevelRaycasterMapData));
-  if (!data)
+  if (!data) {
     return NULL;
+  }
 
   data->width = width;
   data->height = height;

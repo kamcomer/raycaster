@@ -86,6 +86,9 @@
 6: assets/textures/purplestone.png
 7: assets/textures/redbrick.png
 8: assets/textures/wood.png
+9: assets/sprites/pillar.png
+10: assets/sprites/barrel.png
+11: assets/sprites/greenlight.png
 
 [SPRITE_TYPES]
 1: assets/sprites/pillar.png
