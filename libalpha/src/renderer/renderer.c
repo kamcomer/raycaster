@@ -42,8 +42,8 @@ static AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend 
   return A_RES_OK;
 }
 
-static AResult a_renderer_technique_init(const ARendererBackend *backend, AScene *scene,
-                                         ARendererConfig config, ARendererTechnique *out)
+static AResult a_renderer_technique_init(const ARendererBackend *backend, ARendererConfig config,
+                                         ARendererTechnique *out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -54,7 +54,7 @@ static AResult a_renderer_technique_init(const ARendererBackend *backend, AScene
   switch (config.technique) {
   case A_RENDERER_TECHNIQUE_RAYCASTER: {
     AResult res = a_renderer_technique_raycaster_init(
-        (ARendererTechniqueRaycasterData){scene, a_renderer_backend_window_dimensions(backend),
+        (ARendererTechniqueRaycasterData){NULL, a_renderer_backend_window_dimensions(backend),
                                           a_renderer_backend_framebuffer(backend),
                                           a_renderer_backend_zbuffer(backend)},
         out);
@@ -70,7 +70,7 @@ static AResult a_renderer_technique_init(const ARendererBackend *backend, AScene
   return A_RES_OK;
 }
 
-AResult a_renderer_create(AScene *scene, ARendererConfig config, ARenderer **out)
+AResult a_renderer_create(ARendererConfig config, ARenderer **out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -89,7 +89,7 @@ AResult a_renderer_create(AScene *scene, ARendererConfig config, ARenderer **out
     return res;
   }
 
-  res = a_renderer_technique_init(&renderer->backend, scene, config, &renderer->technique);
+  res = a_renderer_technique_init(&renderer->backend, config, &renderer->technique);
   if (res != A_RES_OK) {
     free(renderer);
     return res;
@@ -109,17 +109,17 @@ void a_renderer_backend_render(const ARendererBackend *backend) { backend->vtbl-
 
 uint32 *a_renderer_backend_framebuffer(const ARendererBackend *backend)
 {
-  return backend->vtbl->framebuffer(backend);
+  return backend->vtbl->get_framebuffer(backend);
 }
 
 double *a_renderer_backend_zbuffer(const ARendererBackend *backend)
 {
-  return backend->vtbl->zbuffer(backend);
+  return backend->vtbl->get_zbuffer(backend);
 }
 
 ADimensions *a_renderer_backend_window_dimensions(const ARendererBackend *backend)
 {
-  return backend->vtbl->window_dims(backend);
+  return backend->vtbl->get_window_diminsions(backend);
 }
 
 void a_renderer_technique_process(ARendererTechnique *technique)

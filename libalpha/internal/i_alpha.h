@@ -261,14 +261,16 @@ struct ARenderer {
 
 struct ARendererBackendVtbl {
   void (*render)(const ARendererBackend *backend);
-  uint32 *(*framebuffer)(const ARendererBackend *backend);
-  double *(*zbuffer)(const ARendererBackend *backend);
-  ADimensions *(*window_dims)(const ARendererBackend *backend);
+  uint32 *(*get_framebuffer)(const ARendererBackend *backend);
+  double *(*get_zbuffer)(const ARendererBackend *backend);
+  ADimensions *(*get_window_diminsions)(const ARendererBackend *backend);
   void (*destroy)(ARendererBackend *backend);
 };
 
 struct ARendererTechniqueVtbl {
   void (*process)(ARendererTechnique *technique);
+  AScene (*get_scene)(ARendererTechnique *technique);
+  void (*set_scene)(ARendererTechnique *technique, AScene *scene);
   void (*destroy)(ARendererTechnique *technique);
 };
 
@@ -279,7 +281,7 @@ struct ARendererTechniqueRaycasterData {
   double *zbuffer;
 };
 
-AResult a_renderer_create(AScene *scene, ARendererConfig config, ARenderer **out);
+AResult a_renderer_create(ARendererConfig config, ARenderer **out);
 void a_renderer_destroy(ARenderer *renderer);
 
 void a_renderer_backend_render(const ARendererBackend *backend);

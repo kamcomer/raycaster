@@ -58,7 +58,7 @@
 //   }
 // }
 
-static SDL_Scancode key_to_scancode(RcKey key)
+static SDL_Scancode key_to_scancode(AKey key)
 {
   switch (key) {
   case RC_KEY_W:
@@ -136,57 +136,62 @@ static void update_data(SdlInputData *data)
   }
 }
 
-static bool get_input_down(SdlInputData *data, RcKey key)
+static bool get_input_down(SdlInputData *data, AKey key)
 {
-  if (!data || !data->keyboard_state)
+  if (!data || !data->keyboard_state) {
     return false;
+  }
 
-  SDL_Scancode sc = key_to_scancode(key);
-  return data->keyboard_state[sc] != 0;
+  SDL_Scancode scan_code = key_to_scancode(key);
+  return data->keyboard_state[scan_code] != 0;
 }
 
-static bool get_input_presssed(SdlInputData *data, RcKey key)
+static bool get_input_presssed(SdlInputData *data, AKey key)
 {
-  if (!data || !data->keyboard_state)
+  if (!data || !data->keyboard_state) {
     return false;
+  }
 
-  SDL_Scancode sc = key_to_scancode(key);
-  return data->keyboard_state[sc] && !data->prev_keyboard_state[sc];
+  SDL_Scancode scan_code = key_to_scancode(key);
+  return data->keyboard_state[scan_code] && !data->prev_keyboard_state[scan_code];
 }
 
 AInput *a_sdl_input_create(void)
 {
   SdlInputData *data = calloc(1, sizeof(SdlInputData));
-  if (!data)
+  if (!data) {
     return NULL;
+  }
 
   data->keyboard_state = SDL_GetKeyboardState(NULL);
   data->quit_requested = false;
 
-  AeInput *in = malloc(sizeof(AeInput));
-  if (!in) {
+  AInput *input = malloc(sizeof(AInput));
+  if (!input) {
     destroy_data(data);
     return NULL;
   }
-  in->vtbl = &sdl_input_vtbl;
-  in->impl = data;
-  return in;
+  input->vtbl = &sdl_input_vtbl;
+  input->impl = data;
+  return input;
 }
 
-// RcInput Vtbl implementation
-static bool sdl_input_down(AeInput *in, RcKey key) { return get_input_down(in->impl, key); }
+static bool sdl_input_down(AInput *input, AKey key) { return get_input_down(input->impl, key); }
 
-static bool sdl_input_pressed(AeInput *in, RcKey key) { return get_input_presssed(in->impl, key); }
-
-static void sdl_input_update(AeInput *in) { update_data(in->impl); }
-
-static void sdl_input_destroy(AeInput *in)
+static bool sdl_input_pressed(AInput *input, AKey key)
 {
-  destroy_data(in->impl);
-  free(in);
+  return get_input_presssed(input->impl, key);
 }
 
-RcInputVtbl sdl_input_vtbl = {
+static void sdl_input_update(AInput *input) { update_data(input->impl); }
+
+static void sdl_input_destroy(AInput *input)
+{
+  destroy_data(input->impl);
+  free(input);
+}
+
+AInputVtbl sdl_input_vtbl = {
     .down = sdl_input_down,
     .pressed = sdl_input_pressed,
     .update = sdl_input_update,

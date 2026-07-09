@@ -27,21 +27,7 @@ AResult a_engine_create(AEngineConfig config, AEngine **out)
   engine->running = false;
   engine->config = config;
 
-  // TODO Remove this, it is a bandaid
-  engine->scene = malloc(sizeof(AScene));
-
-  const float cam_pos = 3.5;
-
-  AResult res =
-      a_camera_create(config.rend_config.width, config.rend_config.height, &engine->scene->camera);
-  if (res != A_RES_OK) {
-    a_engine_destroy(engine);
-    return res;
-  }
-  a_camera_set_position(engine->scene->camera, cam_pos, cam_pos);
-  a_camera_set_direction(engine->scene->camera, -1.0, 0.0);
-
-  res = a_renderer_create(engine->scene, config.rend_config, &engine->renderer);
+  AResult res = a_renderer_create(config.rend_config, &engine->renderer);
   if (res != A_RES_OK) {
     a_engine_destroy(engine);
     return res;
@@ -208,6 +194,20 @@ void a_engine_run(AEngine *engine)
     return;
   }
 
+  // TODO Remove this, it is a bandaid
+  engine->scene = malloc(sizeof(AScene));
+
+  const float cam_pos = 3.5;
+
+  AResult res = a_camera_create(engine->config.rend_config.width, engine->config.rend_config.height,
+                                &engine->scene->camera);
+  if (res != A_RES_OK) {
+    a_engine_destroy(engine);
+    return;
+  }
+  a_camera_set_position(engine->scene->camera, cam_pos, cam_pos);
+  a_camera_set_direction(engine->scene->camera, -1.0, 0.0);
+
   ATextureArray *texture_array;
   a_texture_array_create(texture_paths->len, &texture_array);
   for (uint i = 0; i < texture_paths->len; i++) {
@@ -216,6 +216,8 @@ void a_engine_run(AEngine *engine)
 
   engine->scene->textures = texture_array;
   engine->scene->level = engine->level;
+
+  engine->renderer->technique.vtbl->set_scene(&engine->renderer->technique, engine->scene);
 
   engine->running = true;
 

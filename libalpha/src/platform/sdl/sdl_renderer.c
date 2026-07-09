@@ -136,9 +136,9 @@ static ADimensions *get_window_dimensions(const ARendererBackend *backend)
 }
 
 ARendererBackendVtbl renderer_backend_vtbl = {.render = render,
-                                              .framebuffer = get_framebuffer,
-                                              .zbuffer = get_zbuffer,
-                                              .window_dims = get_window_dimensions,
+                                              .get_framebuffer = get_framebuffer,
+                                              .get_zbuffer = get_zbuffer,
+                                              .get_window_diminsions = get_window_dimensions,
                                               .destroy = destroy};
 
 AResult sdl_renderer_init(ARendererConfig config, ARendererBackend *out)

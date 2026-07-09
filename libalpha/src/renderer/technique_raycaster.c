@@ -284,8 +284,15 @@ static void a_renderer_technique_raycaster_process(ARendererTechnique *technique
   render_sprites(data->scene, data->window_dimensions, data->framebuffer, data->zbuffer);
 }
 
+static void a_renderer_technique_raycaster_set_scene(ARendererTechnique *technique, AScene *scene)
+{
+  ARendererTechniqueRaycasterData *data = technique->impl;
+  data->scene = scene;
+}
+
 static ARendererTechniqueVtbl renderer_technique_raycaster = {
-    .process = a_renderer_technique_raycaster_process};
+    .process = a_renderer_technique_raycaster_process,
+    .set_scene = a_renderer_technique_raycaster_set_scene};
 
 AResult a_renderer_technique_raycaster_init(const ARendererTechniqueRaycasterData data_in,
                                             ARendererTechnique *out)

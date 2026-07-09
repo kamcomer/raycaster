@@ -13,5 +13,5 @@ typedef struct {
 
 AInput *a_sdl_input_create(void);
 
-extern RcInputVtbl sdl_input_vtbl;
+extern AInputVtbl sdl_input_vtbl;
 #endif
