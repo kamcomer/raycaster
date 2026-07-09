@@ -8,8 +8,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <wchar.h>
 
 #define FIXED_DT 0.0166667f
+#define SCALOR_SEC_TO_MS 1000.0f
+
+static inline double a_engine_get_time_ms(void)
+{
+
+  return ((double)clock() / CLOCKS_PER_SEC) * SCALOR_SEC_TO_MS;
+}
+
+static AResult a_engine_init(AEngineConfig config, AEngine *out)
+{
+  if (!out) {
+    return A_RES_INVLD_ARG;
+  }
+
+  *out = (AEngine){0};
+
+  out->config = config;
+
+  AResult res = a_renderer_create(config.rend_config, &out->renderer);
+  if (res != A_RES_OK) {
+    a_engine_destroy(out);
+    return res;
+  }
+
+  res = a_input_create(config.input_backend, &out->input);
+  if (res != A_RES_OK) {
+    a_engine_destroy(out);
+    return res;
+  }
+
+  out->last_time = a_engine_get_time_ms();
+
+  return A_RES_OK;
+}
 
 AResult a_engine_create(AEngineConfig config, AEngine **out)
 {
@@ -24,22 +60,12 @@ AResult a_engine_create(AEngineConfig config, AEngine **out)
     return A_RES_ALLOC_ERR;
   }
 
-  engine->running = false;
-  engine->config = config;
-
-  AResult res = a_renderer_create(config.rend_config, &engine->renderer);
+  AResult res = a_engine_init(config, engine);
   if (res != A_RES_OK) {
-    a_engine_destroy(engine);
+    free(engine);
     return res;
   }
 
-  res = a_input_create(config.input_backend, &engine->input);
-  if (res != A_RES_OK) {
-    a_engine_destroy(engine);
-    return res;
-  }
-
-  engine->last_time = SDL_GetTicks();
   *out = engine;
   return A_RES_OK;
 }
@@ -61,6 +87,8 @@ void a_engine_deinit(AEngine *engine)
   if (engine->input) {
     a_input_destroy(engine->input);
   }
+
+  *engine = (AEngine){0};
 
   /* a_texture_manager_destroy(&engine->texture_manager); */
 }
@@ -89,7 +117,7 @@ ALevel *a_engine_get_level(AEngine *engine) { return engine ? engine->level : NU
 
 AInput *a_engine_get_input_manager(AEngine *engine) { return engine ? engine->input : NULL; }
 
-static void render(AEngine *engine)
+static void a_engine_render(AEngine *engine)
 {
   if (!engine || !engine->level) {
     return;
@@ -102,7 +130,7 @@ static void render(AEngine *engine)
   a_renderer_backend_render(&engine->renderer->backend);
 }
 
-static void update(AEngine *engine)
+static void a_engine_update(AEngine *engine)
 {
   if (!engine) {
     return;
@@ -166,7 +194,7 @@ static void update(AEngine *engine)
   }
 }
 
-static void handle_events(AEngine *engine)
+static void a_engine_handle_events(AEngine *engine)
 {
   if (!engine || !engine->input) {
     return;
@@ -222,7 +250,7 @@ void a_engine_run(AEngine *engine)
   engine->running = true;
 
   while (engine->running) {
-    engine->current_time = SDL_GetTicks();
+    engine->current_time = a_engine_get_time_ms();
     float frame_time = (engine->current_time - engine->last_time) / 1000.0f;
     engine->last_time = engine->current_time;
 
@@ -232,14 +260,14 @@ void a_engine_run(AEngine *engine)
     engine->accumulator += frame_time;
     engine->delta_time = frame_time;
 
-    handle_events(engine);
+    a_engine_handle_events(engine);
 
     while (engine->accumulator >= FIXED_DT) {
-      update(engine);
+      a_engine_update(engine);
       engine->accumulator -= FIXED_DT;
     }
 
-    render(engine);
+    a_engine_render(engine);
   }
 }
 

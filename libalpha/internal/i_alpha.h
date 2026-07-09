@@ -269,7 +269,7 @@ struct ARendererBackendVtbl {
 
 struct ARendererTechniqueVtbl {
   void (*process)(ARendererTechnique *technique);
-  AScene (*get_scene)(ARendererTechnique *technique);
+  AScene *(*get_scene)(ARendererTechnique *technique);
   void (*set_scene)(ARendererTechnique *technique, AScene *scene);
   void (*destroy)(ARendererTechnique *technique);
 };
@@ -290,12 +290,14 @@ double *a_renderer_backend_zbuffer(const ARendererBackend *backend);
 ADimensions *a_renderer_backend_window_dimensions(const ARendererBackend *backend);
 
 void a_renderer_technique_process(ARendererTechnique *technique);
+void a_renderer_technique_set_scene(ARendererTechnique *technique, AScene *scene);
+AScene *a_renderer_technique_get_scene(ARendererTechnique *technique);
 
 void a_renderer_technique_raycaster(AScene *scene, ARenderer *renderer);
-AResult a_renderer_technique_raycaster_create(const ARendererTechniqueRaycasterData data_in,
+AResult a_renderer_technique_raycaster_create(ARendererTechniqueRaycasterData data_in,
                                               ARendererTechnique **out);
 void a_renderer_technique_raycaster_destroy(ARendererTechnique *technique);
-AResult a_renderer_technique_raycaster_init(const ARendererTechniqueRaycasterData data_in,
+AResult a_renderer_technique_raycaster_init(ARendererTechniqueRaycasterData data_in,
                                             ARendererTechnique *out);
 void a_renderer_technique_raycaster_deinit(ARendererTechnique *technique);
 

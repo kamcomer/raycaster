@@ -2,6 +2,7 @@
 #include "internal/platform/sdl/sdl_renderer_int.h"
 #include <stdlib.h>
 
+//------- Backend Vtbl Callbacks -------
 static void a_renderer_backend_destroy(ARendererBackend *backend)
 {
   if (!backend) {
@@ -9,15 +10,6 @@ static void a_renderer_backend_destroy(ARendererBackend *backend)
   }
   backend->vtbl->destroy(backend);
   free(backend);
-}
-
-static void a_renderer_technique_destroy(ARendererTechnique *technique)
-{
-  if (!technique) {
-    return;
-  }
-  technique->vtbl->destroy(technique);
-  free(technique);
 }
 
 static AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend *out)
@@ -40,6 +32,16 @@ static AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend 
   }
 
   return A_RES_OK;
+}
+
+//------- Technique Vtbl Callbacks -------
+static void a_renderer_technique_destroy(ARendererTechnique *technique)
+{
+  if (!technique) {
+    return;
+  }
+  technique->vtbl->destroy(technique);
+  free(technique);
 }
 
 static AResult a_renderer_technique_init(const ARendererBackend *backend, ARendererConfig config,
@@ -70,6 +72,7 @@ static AResult a_renderer_technique_init(const ARendererBackend *backend, ARende
   return A_RES_OK;
 }
 
+// ------- Renderer Functions -------
 AResult a_renderer_create(ARendererConfig config, ARenderer **out)
 {
   if (!out) {
@@ -125,4 +128,14 @@ ADimensions *a_renderer_backend_window_dimensions(const ARendererBackend *backen
 void a_renderer_technique_process(ARendererTechnique *technique)
 {
   technique->vtbl->process(technique);
+}
+
+void a_renderer_technique_set_scene(ARendererTechnique *technique, AScene *scene)
+{
+  technique->vtbl->set_scene(technique, scene);
+}
+
+AScene *a_renderer_technique_get_scene(ARendererTechnique *technique)
+{
+  return technique->vtbl->get_scene(technique);
 }
