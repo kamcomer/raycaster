@@ -61,51 +61,51 @@
 static SDL_Scancode key_to_scancode(AKey key)
 {
   switch (key) {
-  case RC_KEY_W:
+  case A_KEY_W:
     return SDL_SCANCODE_W;
-  case RC_KEY_S:
+  case A_KEY_S:
     return SDL_SCANCODE_S;
-  case RC_KEY_A:
+  case A_KEY_A:
     return SDL_SCANCODE_A;
-  case RC_KEY_D:
+  case A_KEY_D:
     return SDL_SCANCODE_D;
-  case RC_KEY_UP:
+  case A_KEY_UP:
     return SDL_SCANCODE_UP;
-  case RC_KEY_DOWN:
+  case A_KEY_DOWN:
     return SDL_SCANCODE_DOWN;
-  case RC_KEY_LEFT:
+  case A_KEY_LEFT:
     return SDL_SCANCODE_LEFT;
-  case RC_KEY_RIGHT:
+  case A_KEY_RIGHT:
     return SDL_SCANCODE_RIGHT;
-  case RC_KEY_SPACE:
+  case A_KEY_SPACE:
     return SDL_SCANCODE_SPACE;
-  case RC_KEY_ESCAPE:
+  case A_KEY_ESCAPE:
     return SDL_SCANCODE_ESCAPE;
-  case RC_KEY_ENTER:
+  case A_KEY_ENTER:
     return SDL_SCANCODE_RETURN;
-  case RC_KEY_SHIFT:
+  case A_KEY_SHIFT:
     return SDL_SCANCODE_LSHIFT;
-  case RC_KEY_CTRL:
+  case A_KEY_CTRL:
     return SDL_SCANCODE_LCTRL;
-  case RC_KEY_0:
+  case A_KEY_0:
     return SDL_SCANCODE_0;
-  case RC_KEY_1:
+  case A_KEY_1:
     return SDL_SCANCODE_1;
-  case RC_KEY_2:
+  case A_KEY_2:
     return SDL_SCANCODE_2;
-  case RC_KEY_3:
+  case A_KEY_3:
     return SDL_SCANCODE_3;
-  case RC_KEY_4:
+  case A_KEY_4:
     return SDL_SCANCODE_4;
-  case RC_KEY_5:
+  case A_KEY_5:
     return SDL_SCANCODE_5;
-  case RC_KEY_6:
+  case A_KEY_6:
     return SDL_SCANCODE_6;
-  case RC_KEY_7:
+  case A_KEY_7:
     return SDL_SCANCODE_7;
-  case RC_KEY_8:
+  case A_KEY_8:
     return SDL_SCANCODE_8;
-  case RC_KEY_9:
+  case A_KEY_9:
     return SDL_SCANCODE_9;
   default:
     return SDL_SCANCODE_UNKNOWN;
@@ -114,15 +114,17 @@ static SDL_Scancode key_to_scancode(AKey key)
 
 static void destroy_data(SdlInputData *data)
 {
-  if (!data)
+  if (!data) {
     return;
+  }
   free(data);
 }
 
 static void update_data(SdlInputData *data)
 {
-  if (!data || !data->keyboard_state)
+  if (!data || !data->keyboard_state) {
     return;
+  }
 
   for (int i = 0; i < SDL_SCANCODE_COUNT; i++) {
     data->prev_keyboard_state[i] = data->keyboard_state[i];

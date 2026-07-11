@@ -2,7 +2,6 @@
 #define SDL_INPUT_INT_H
 
 #include "internal/i_alpha.h"
-#include "internal/input_manager_int.h"
 #include <SDL3/SDL.h>
 
 typedef struct {
