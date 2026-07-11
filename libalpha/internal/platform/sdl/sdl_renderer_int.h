@@ -14,10 +14,10 @@ typedef struct {
   ADimensions *window_dimensions;
 } SdlRendererBackendData;
 
-AResult sdl_renderer_create(ARendererConfig config, ARendererBackend **out);
-AResult sdl_renderer_init(ARendererConfig config, ARendererBackend *out);
-AResult sdl_renderer_destroy(ARendererBackend *backend);
-AResult sdl_renderer_deinit(ARendererBackend *backend);
+AResult a_sdl_renderer_create(ARendererConfig config, ARendererBackend **out);
+AResult a_sdl_renderer_init(ARendererConfig config, ARendererBackend *out);
+AResult a_sdl_renderer_destroy(ARendererBackend *backend);
+AResult a_sdl_renderer_deinit(ARendererBackend *backend);
 
 extern ARendererBackendVtbl renderer_backend_vtbl;
 

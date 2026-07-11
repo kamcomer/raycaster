@@ -3,23 +3,22 @@
 #include "internal/platform/sdl/sdl_renderer_int.h"
 #include <stdlib.h>
 
-static void sdl_renderer_backend_data_deinit(SdlRendererBackendData *data)
+static void a_sdl_renderer_backend_data_deinit(SdlRendererBackendData *data)
 {
   SDL_DestroyTexture(data->screen);
   SDL_DestroyRenderer(data->renderer);
   SDL_DestroyWindow(data->window);
   free(data->framebuffer);
   free(data->z_buffer);
-  SDL_Quit();
 }
 
-static void sdl_renderer_backend_data_destroy(SdlRendererBackendData *data)
+static void a_sdl_renderer_backend_data_destroy(SdlRendererBackendData *data)
 {
-  sdl_renderer_backend_data_deinit(data);
+  a_sdl_renderer_backend_data_deinit(data);
   free(data);
 }
 
-static AResult sdl_renderer_backend_data_init(ARendererConfig config, SdlRendererBackendData *out)
+static AResult a_sdl_renderer_backend_data_init(ARendererConfig config, SdlRendererBackendData *out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -32,14 +31,14 @@ static AResult sdl_renderer_backend_data_init(ARendererConfig config, SdlRendere
   out->window = SDL_CreateWindow("", config.width, config.height, 0);
   if (!out->window) {
     fprintf(stderr, "Failed to create window: %s\n", SDL_GetError());
-    sdl_renderer_backend_data_destroy(out);
+    a_sdl_renderer_backend_data_destroy(out);
     *out = (SdlRendererBackendData){0};
     return A_RES_BACKEND_ERR;
   }
 
   out->window_dimensions = malloc(sizeof(ADimensions));
   if (!out->window) {
-    sdl_renderer_backend_data_destroy(out);
+    a_sdl_renderer_backend_data_destroy(out);
     *out = (SdlRendererBackendData){0};
     return A_RES_ALLOC_ERR;
   }
@@ -49,7 +48,7 @@ static AResult sdl_renderer_backend_data_init(ARendererConfig config, SdlRendere
   out->renderer = SDL_CreateRenderer(out->window, NULL);
   if (!out->renderer) {
     fprintf(stderr, "Failed to create renderer: %s\n", SDL_GetError());
-    sdl_renderer_backend_data_destroy(out);
+    a_sdl_renderer_backend_data_destroy(out);
     *out = (SdlRendererBackendData){0};
     return A_RES_BACKEND_ERR;
   }
@@ -59,20 +58,20 @@ static AResult sdl_renderer_backend_data_init(ARendererConfig config, SdlRendere
                         out->window_dimensions->width, out->window_dimensions->height);
   if (!out->screen) {
     fprintf(stderr, "Failed to create renderer: %s\n", SDL_GetError());
-    sdl_renderer_backend_data_destroy(out);
+    a_sdl_renderer_backend_data_destroy(out);
     *out = (SdlRendererBackendData){0};
     return A_RES_BACKEND_ERR;
   }
 
   out->framebuffer = malloc(config.width * config.height * sizeof(uint32_t));
   if (!out->framebuffer) {
-    sdl_renderer_backend_data_destroy(out);
+    a_sdl_renderer_backend_data_destroy(out);
     *out = (SdlRendererBackendData){0};
     return A_RES_ALLOC_ERR;
   }
   out->z_buffer = malloc(config.width * sizeof(double));
   if (!out->z_buffer) {
-    sdl_renderer_backend_data_destroy(out);
+    a_sdl_renderer_backend_data_destroy(out);
     *out = (SdlRendererBackendData){0};
     return A_RES_ALLOC_ERR;
   }
@@ -80,8 +79,8 @@ static AResult sdl_renderer_backend_data_init(ARendererConfig config, SdlRendere
   return A_RES_OK;
 }
 
-static AResult sdl_renderer_backend_data_create(ARendererConfig config,
-                                                SdlRendererBackendData **out)
+static AResult a_sdl_renderer_backend_data_create(ARendererConfig config,
+                                                  SdlRendererBackendData **out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -93,7 +92,7 @@ static AResult sdl_renderer_backend_data_create(ARendererConfig config,
     return A_RES_ALLOC_ERR;
   }
 
-  AResult res = sdl_renderer_backend_data_init(config, data);
+  AResult res = a_sdl_renderer_backend_data_init(config, data);
   if (res != A_RES_OK) {
     free(data);
     return A_RES_ALLOC_ERR;
@@ -103,7 +102,16 @@ static AResult sdl_renderer_backend_data_create(ARendererConfig config,
   return A_RES_OK;
 }
 
-static void destroy(ARendererBackend *backend) { sdl_renderer_backend_data_destroy(backend->impl); }
+static void a_sdl_renderer_backend_destroy(ARendererBackend *backend)
+{
+  a_sdl_renderer_backend_data_destroy(backend->impl);
+  free(backend);
+}
+
+static void a_sdl_renderer_backend_deinit(ARendererBackend *backend)
+{
+  a_sdl_renderer_backend_data_deinit(backend->impl);
+}
 
 static void render(const ARendererBackend *backend)
 {
@@ -117,31 +125,33 @@ static void render(const ARendererBackend *backend)
   SDL_RenderPresent(data->renderer);
 }
 
-static uint32 *get_framebuffer(const ARendererBackend *backend)
+static uint32 *a_sdl_renderer_backend_get_framebuffer(const ARendererBackend *backend)
 {
   SdlRendererBackendData *data = backend->impl;
   return data->framebuffer;
 }
 
-static double *get_zbuffer(const ARendererBackend *backend)
+static double *a_sdl_renderer_backend_get_zbuffer(const ARendererBackend *backend)
 {
   SdlRendererBackendData *data = backend->impl;
   return data->z_buffer;
 }
 
-static ADimensions *get_window_dimensions(const ARendererBackend *backend)
+static ADimensions *a_sdl_renderer_backend_get_window_dimensions(const ARendererBackend *backend)
 {
   SdlRendererBackendData *data = backend->impl;
   return data->window_dimensions;
 }
 
-ARendererBackendVtbl renderer_backend_vtbl = {.render = render,
-                                              .get_framebuffer = get_framebuffer,
-                                              .get_zbuffer = get_zbuffer,
-                                              .get_window_diminsions = get_window_dimensions,
-                                              .destroy = destroy};
+ARendererBackendVtbl renderer_backend_vtbl = {
+    .render = render,
+    .get_framebuffer = a_sdl_renderer_backend_get_framebuffer,
+    .get_zbuffer = a_sdl_renderer_backend_get_zbuffer,
+    .get_window_diminsions = a_sdl_renderer_backend_get_window_dimensions,
+    .destroy = a_sdl_renderer_backend_destroy,
+    .deinit = a_sdl_renderer_backend_deinit};
 
-AResult sdl_renderer_init(ARendererConfig config, ARendererBackend *out)
+AResult a_sdl_renderer_init(ARendererConfig config, ARendererBackend *out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -154,7 +164,7 @@ AResult sdl_renderer_init(ARendererConfig config, ARendererBackend *out)
 
   *out = (ARendererBackend){0};
 
-  AResult res = sdl_renderer_backend_data_create(config, (SdlRendererBackendData **)&out->impl);
+  AResult res = a_sdl_renderer_backend_data_create(config, (SdlRendererBackendData **)&out->impl);
   if (res != A_RES_OK) {
     *out = (ARendererBackend){0};
     return res;
@@ -178,7 +188,7 @@ AResult sdl_renderer_create(ARendererConfig config, ARendererBackend **out)
     return A_RES_ALLOC_ERR;
   }
 
-  AResult res = sdl_renderer_init(config, backend);
+  AResult res = a_sdl_renderer_init(config, backend);
   if (res != A_RES_OK) {
     return res;
   }

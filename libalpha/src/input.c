@@ -3,15 +3,17 @@
 
 AResult a_input_create(AInputBackendType backend, AInput **out)
 {
+  AResult res;
   switch (backend) {
   case A_INPUT_BACKEND_SDL:
-    *out = a_sdl_input_create();
+    res = a_sdl_input_create(out);
     break;
 
   default:
     break;
   }
-  return A_RES_OK;
+
+  return res;
 }
 
 bool a_input_get_key_down(AInput *input_manager, AKey key)

@@ -265,6 +265,7 @@ struct ARendererBackendVtbl {
   double *(*get_zbuffer)(const ARendererBackend *backend);
   ADimensions *(*get_window_diminsions)(const ARendererBackend *backend);
   void (*destroy)(ARendererBackend *backend);
+  void (*deinit)(ARendererBackend *backend);
 };
 
 struct ARendererTechniqueVtbl {
@@ -272,6 +273,7 @@ struct ARendererTechniqueVtbl {
   AScene *(*get_scene)(ARendererTechnique *technique);
   void (*set_scene)(ARendererTechnique *technique, AScene *scene);
   void (*destroy)(ARendererTechnique *technique);
+  void (*deinit)(ARendererTechnique *technique);
 };
 
 struct ARendererTechniqueRaycasterData {
@@ -288,10 +290,13 @@ void a_renderer_backend_render(const ARendererBackend *backend);
 uint32 *a_renderer_backend_framebuffer(const ARendererBackend *backend);
 double *a_renderer_backend_zbuffer(const ARendererBackend *backend);
 ADimensions *a_renderer_backend_window_dimensions(const ARendererBackend *backend);
+void a_renderer_backend_destroy(ARendererBackend *backend);
+void a_renderer_backend_deinit(ARendererBackend *backend);
 
 void a_renderer_technique_process(ARendererTechnique *technique);
 void a_renderer_technique_set_scene(ARendererTechnique *technique, AScene *scene);
 AScene *a_renderer_technique_get_scene(ARendererTechnique *technique);
+void a_renderer_technique_deinit(ARendererTechnique *technique);
 
 void a_renderer_technique_raycaster(AScene *scene, ARenderer *renderer);
 AResult a_renderer_technique_raycaster_create(ARendererTechniqueRaycasterData data_in,
@@ -302,8 +307,8 @@ AResult a_renderer_technique_raycaster_init(ARendererTechniqueRaycasterData data
 void a_renderer_technique_raycaster_deinit(ARendererTechnique *technique);
 
 // Input
-typedef struct AInputVtbl AInputVtbl;
 typedef struct AInput AInput;
+typedef struct AInputVtbl AInputVtbl;
 
 struct AInput {
   const AInputVtbl *vtbl;

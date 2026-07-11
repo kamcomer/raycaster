@@ -20,12 +20,13 @@ typedef enum AeResult {
 
 // Renderer
 typedef struct ARenderer ARenderer;
+typedef struct ARendererConfig ARendererConfig;
 
 typedef enum { A_RENDERER_BACKEND_SDL } ARendererBackendType;
 typedef enum { A_RENDERER_TECHNIQUE_RAYCASTER } ARendererTechniqueType;
 typedef enum { A_RENDERER_SCREEN_MODE_FULLSCREEN } ARendererScreenModeType;
 
-typedef struct AeRendererConfig {
+struct ARendererConfig {
   ARendererBackendType backend;
   ARendererScreenModeType screen_mode;
   ARendererTechniqueType technique;
@@ -35,7 +36,7 @@ typedef struct AeRendererConfig {
   bool show_fps;
   bool use_gpu;
   bool disable_sprites;
-} ARendererConfig;
+};
 
 // Input
 typedef struct AInput AInput;

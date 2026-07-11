@@ -3,16 +3,28 @@
 #include <stdlib.h>
 
 //------- Backend Vtbl Callbacks -------
-static void a_renderer_backend_destroy(ARendererBackend *backend)
+void a_renderer_backend_destroy(ARendererBackend *backend)
 {
   if (!backend) {
     return;
   }
-  backend->vtbl->destroy(backend);
+
+  if (backend->vtbl) {
+    backend->vtbl->destroy(backend);
+  }
+
   free(backend);
 }
 
-static AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend *out)
+void a_renderer_backend_deinit(ARendererBackend *backend)
+{
+  if (!backend) {
+    return;
+  }
+  backend->vtbl->deinit(backend);
+}
+
+AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend *out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -22,7 +34,7 @@ static AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend 
 
   switch (config.backend) {
   case A_RENDERER_BACKEND_SDL: {
-    AResult res = sdl_renderer_init(config, out);
+    AResult res = a_sdl_renderer_init(config, out);
     if (res != A_RES_OK) {
       *out = (ARendererBackend){0};
       return res;
@@ -35,17 +47,28 @@ static AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend 
 }
 
 //------- Technique Vtbl Callbacks -------
-static void a_renderer_technique_destroy(ARendererTechnique *technique)
+void a_renderer_technique_destroy(ARendererTechnique *technique)
 {
   if (!technique) {
     return;
   }
-  technique->vtbl->destroy(technique);
+
+  if (technique->vtbl) {
+    technique->vtbl->destroy(technique);
+  }
   free(technique);
 }
 
-static AResult a_renderer_technique_init(const ARendererBackend *backend, ARendererConfig config,
-                                         ARendererTechnique *out)
+void a_renderer_technique_deinit(ARendererTechnique *technique)
+{
+  if (!technique) {
+    return;
+  }
+  technique->vtbl->deinit(technique);
+}
+
+AResult a_renderer_technique_init(const ARendererBackend *backend, ARendererConfig config,
+                                  ARendererTechnique *out)
 {
   if (!out) {
     return A_RES_INVLD_ARG;
@@ -104,8 +127,8 @@ AResult a_renderer_create(ARendererConfig config, ARenderer **out)
 
 void a_renderer_destroy(ARenderer *renderer)
 {
-  a_renderer_backend_destroy(&renderer->backend);
-  a_renderer_technique_destroy(&renderer->technique);
+  a_renderer_backend_deinit(&renderer->backend);
+  a_renderer_technique_deinit(&renderer->technique);
 }
 
 void a_renderer_backend_render(const ARendererBackend *backend) { backend->vtbl->render(backend); }

@@ -276,6 +276,23 @@ static void render_walls(const AScene *scene, const ADimensions *window_dims, ui
   }
 }
 
+void a_renderer_technique_raycaster_deinit(ARendererTechnique *technique)
+{
+  if (!technique) {
+    return;
+  }
+  free(technique->impl);
+}
+
+void a_renderer_technique_raycaster_destroy(ARendererTechnique *technique)
+{
+  if (!technique) {
+    return;
+  }
+  a_renderer_technique_raycaster_deinit(technique);
+  free(technique);
+}
+
 static void a_renderer_technique_raycaster_process(ARendererTechnique *technique)
 {
   ARendererTechniqueRaycasterData *data = technique->impl;
@@ -292,7 +309,9 @@ static void a_renderer_technique_raycaster_set_scene(ARendererTechnique *techniq
 
 static ARendererTechniqueVtbl renderer_technique_raycaster = {
     .process = a_renderer_technique_raycaster_process,
-    .set_scene = a_renderer_technique_raycaster_set_scene};
+    .set_scene = a_renderer_technique_raycaster_set_scene,
+    .deinit = a_renderer_technique_raycaster_deinit,
+};
 
 AResult a_renderer_technique_raycaster_init(const ARendererTechniqueRaycasterData data_in,
                                             ARendererTechnique *out)
@@ -336,21 +355,4 @@ AResult a_renderer_technique_raycaster_create(const ARendererTechniqueRaycasterD
 
   *out = technique;
   return A_RES_OK;
-}
-
-void a_renderer_technique_raycaster_deinit(ARendererTechnique *technique)
-{
-  if (!technique) {
-    return;
-  }
-  free(technique->impl);
-}
-
-void a_renderer_technique_raycaster_destroy(ARendererTechnique *technique)
-{
-  if (!technique) {
-    return;
-  }
-  a_renderer_technique_raycaster_deinit(technique);
-  free(technique);
 }
