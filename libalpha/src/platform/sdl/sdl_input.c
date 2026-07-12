@@ -1,8 +1,6 @@
-#include "SDL3/SDL_mouse.h"
+#include "SDL3/SDL_init.h"
 #include "alpha.h"
-#include "internal/platform/sdl/sdl_input_int.h"
-
-#include <SDL3/SDL.h>
+#include "internal/platform/sdl.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -104,13 +102,17 @@ static AResult a_sdl_input_data_create(SdlInputData **out)
 
 static AResult a_sdl_input_init(AInput *out)
 {
+  if (!SDL_InitSubSystem(SDL_INIT_EVENTS)) {
+    return A_RES_BACKEND_ERR;
+  }
+
   if (!out) {
     return A_RES_INVLD_ARG;
   }
 
   *out = (AInput){0};
 
-  AResult res = a_sdl_input_data_create(&out->impl);
+  AResult res = a_sdl_input_data_create((SdlInputData **)&out->impl);
   if (res != A_RES_OK) {
     *out = (AInput){0};
     return res;

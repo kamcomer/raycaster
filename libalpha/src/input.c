@@ -1,5 +1,5 @@
 #include "internal/i_alpha.h"
-#include "internal/platform/sdl/sdl_input_int.h"
+#include "internal/platform/sdl.h"
 
 AResult a_input_create(AInputBackendType backend, AInput **out)
 {

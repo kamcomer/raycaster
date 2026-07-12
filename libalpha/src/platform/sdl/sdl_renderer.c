@@ -1,6 +1,7 @@
+#include "SDL3/SDL_init.h"
 #include "alpha.h"
 #include "internal/i_alpha.h"
-#include "internal/platform/sdl/sdl_renderer_int.h"
+#include "internal/platform/sdl.h"
 #include <stdlib.h>
 
 static void a_sdl_renderer_backend_data_deinit(SdlRendererBackendData *data)
@@ -113,7 +114,7 @@ static void a_sdl_renderer_backend_deinit(ARendererBackend *backend)
   a_sdl_renderer_backend_data_deinit(backend->impl);
 }
 
-static void render(const ARendererBackend *backend)
+static void a_sdl_renderer_backend_render(const ARendererBackend *backend)
 {
   int width;
   int height;
@@ -143,16 +144,11 @@ static ADimensions *a_sdl_renderer_backend_get_window_dimensions(const ARenderer
   return data->window_dimensions;
 }
 
-ARendererBackendVtbl renderer_backend_vtbl = {
-    .render = render,
-    .get_framebuffer = a_sdl_renderer_backend_get_framebuffer,
-    .get_zbuffer = a_sdl_renderer_backend_get_zbuffer,
-    .get_window_diminsions = a_sdl_renderer_backend_get_window_dimensions,
-    .destroy = a_sdl_renderer_backend_destroy,
-    .deinit = a_sdl_renderer_backend_deinit};
-
-AResult a_sdl_renderer_init(ARendererConfig config, ARendererBackend *out)
+AResult a_sdl_renderer_backend_init(ARendererConfig config, ARendererBackend *out)
 {
+  if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+    return A_RES_BACKEND_ERR;
+  };
   if (!out) {
     return A_RES_INVLD_ARG;
   }
@@ -170,13 +166,12 @@ AResult a_sdl_renderer_init(ARendererConfig config, ARendererBackend *out)
     return res;
   }
 
-  out->vtbl = &renderer_backend_vtbl;
+  out->vtbl = &sdl_renderer_backend_vtbl;
   return A_RES_OK;
 }
 
-AResult sdl_renderer_create(ARendererConfig config, ARendererBackend **out)
+AResult a_sdl_renderer_backend_create(ARendererConfig config, ARendererBackend **out)
 {
-
   if (!out) {
     return A_RES_INVLD_ARG;
   }
@@ -188,7 +183,7 @@ AResult sdl_renderer_create(ARendererConfig config, ARendererBackend **out)
     return A_RES_ALLOC_ERR;
   }
 
-  AResult res = a_sdl_renderer_init(config, backend);
+  AResult res = a_sdl_renderer_backend_init(config, backend);
   if (res != A_RES_OK) {
     return res;
   }
@@ -197,3 +192,11 @@ AResult sdl_renderer_create(ARendererConfig config, ARendererBackend **out)
 
   return A_RES_OK;
 }
+
+ARendererBackendVtbl sdl_renderer_backend_vtbl = {
+    .render = a_sdl_renderer_backend_render,
+    .get_framebuffer = a_sdl_renderer_backend_get_framebuffer,
+    .get_zbuffer = a_sdl_renderer_backend_get_zbuffer,
+    .get_window_diminsions = a_sdl_renderer_backend_get_window_dimensions,
+    .destroy = a_sdl_renderer_backend_destroy,
+    .deinit = a_sdl_renderer_backend_deinit};

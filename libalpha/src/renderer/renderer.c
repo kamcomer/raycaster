@@ -1,5 +1,5 @@
 #include "internal/i_alpha.h"
-#include "internal/platform/sdl/sdl_renderer_int.h"
+#include "internal/platform/sdl.h"
 #include <stdlib.h>
 
 //------- Backend Vtbl Callbacks -------
@@ -34,7 +34,7 @@ AResult a_renderer_backend_init(ARendererConfig config, ARendererBackend *out)
 
   switch (config.backend) {
   case A_RENDERER_BACKEND_SDL: {
-    AResult res = a_sdl_renderer_init(config, out);
+    AResult res = a_sdl_renderer_backend_init(config, out);
     if (res != A_RES_OK) {
       *out = (ARendererBackend){0};
       return res;

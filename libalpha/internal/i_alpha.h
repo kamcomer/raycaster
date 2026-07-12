@@ -346,4 +346,28 @@ struct AEngine {
   bool running;
 };
 
+// Events
+typedef struct AEvent AEvent;
+typedef struct AEventDisplayData AEventDisplayData;
+typedef struct AEventWindowData AEventWindowData;
+typedef struct AEventKeyData AEventKeyData;
+typedef struct AEventMouseMotionData AEventMouseMotionData;
+typedef struct AEventMouseButtonData AEventMouseButtonData;
+typedef struct AEventMouseWheelData AEventMouseWheelData;
+
+typedef enum {
+  A_EVENT_TYPE_DISPLAY,
+  A_EVENT_TYPE_WINDOW,
+  A_EVENT_TYPE_KEY,
+  A_EVENT_TYPE_MOUSE_MOTION,
+  A_EVENT_TYPE_MOUSE_BUTTON,
+  A_EVENT_TYPE_MOUSE_WHEEL,
+  A_EVENT_TYPE_COUNT
+} AEventType;
+
+struct AEvent {
+  AEventType type;
+  void *data;
+};
+
 #endif // I_ALPHA_H
